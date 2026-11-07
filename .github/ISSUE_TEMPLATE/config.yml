@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 下载 Windows 测试版
+    url: https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.1
+    about: 下载便携包，解压后双击启动。
+  - name: 查看使用与更新说明
+    url: https://github.com/changge-ben/zhengming/blob/main/docs/windows-release.md
+    about: 查看启动、停止、诊断、数据位置和更新方法。

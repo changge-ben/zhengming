@@ -1,0 +1,17 @@
+name: 提出改进建议
+description: 分享你希望争鸣改善的体验或支持的玩法。
+title: "[建议] "
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 你想做什么，在哪里遇到了困难
+      description: 具体的使用场景能帮助我们判断改进方向。
+      placeholder: 我想把一场比赛分享给朋友，现在需要……
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 你希望怎样改进
+      description: 可以描述操作方式、效果或参考案例。
