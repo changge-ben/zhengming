@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.local/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.log
+*.tsbuildinfo
+test-results/
