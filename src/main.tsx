@@ -5,6 +5,7 @@ import './styles.css';
 import './judge.css';
 import './workspace.css';
 import './atelier.css';
+import './protocol.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode><App /></React.StrictMode>,

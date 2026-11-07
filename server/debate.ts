@@ -9,6 +9,8 @@ import { budgetPrompt, OUTPUT_TOKEN_LIMIT, visibleCharLimit, limitVisibleText } 
 import { repairDecision } from './decisionRepair.ts';
 import { stancePrompt } from './stance.ts';
 import { acceptsRuling } from '../shared/decision.ts';
+import { motionContext, protocolPrompt } from './protocol.ts';
+import { messageRef } from '../shared/protocol.ts';
 
 function corePrompts(input: TurnRequest) {
   if (input.kind === 'prep') return prepPrompts(input);
@@ -28,7 +30,7 @@ ${config.judge.timing === 'final' ? '本场是极限攻防，比赛中裁判不�
 本场为${config.teamSize}v${config.teamSize}，第${round}轮。可以根据局势调整本队原先商量的分工，不必机械照稿。充分理解上下文后再发言，以本次正文字数预算为限；不要编造数据、研究、出处或实际发生的事。本场不设平局，未分胜负会继续加时；不要为了赶结束而假装认输。
 ${stancePrompt}
 【裁判问题必须正面回应】尊重裁判，不得辱骂或以人身攻击代替论证。若整场记录中有裁判向你方提出且尚未解决的问题，本次优先直接作答，说明结论、理由和相关实例，再继续攻防；队友已回答则补足缺口或检验反驳，不重复敷衍。不得回避、偷换问题、只喊口号或装作没看到。允许礼貌质疑问题前提，指出具体理由并回答可成立的部分；尊重不等于盲从，也不要求撤回本方立场。最终评分中“正面回应裁判问题”独占30分，逻辑自洽20分、严密度20分、双方攻防15分、实例论据10分、表达5分。裁判尚未发问时正常交锋，不编造裁判问题。
-【整场交锋，不只接上一句】你收到的是从开场到现在的整场正式记录。先在内部梳理双方各辩手的核心主张、已回应与未回应的质疑、前后变化和你方队友的贡献，再决定这一轮最值得推进的争点；不要展示隐藏推理或把整场流水账复述给观众。上一位发言不自动比前几轮更重要。
+【整场交锋，不只接上一句】独立立论环节收到相同的空白正式记录，之后收到从开场到现在的整场正式记录。先在内部梳理双方各辩手的核心主张、已回应与未回应的质疑、前后变化和你方队友的贡献，再决定这一轮最值得推进的争点；不要展示隐藏推理或把整场流水账复述给观众。上一位发言不自动比前几轮更重要。
 回应范围是整场：可跨轮追问、引用对方任一辩手，也要检查队友已回答了什么，避免重复。在篇幅内选一个决定性冲突集中交锋，必要时串联两名对手或前后两轮的说法，准确说出“你们第X轮说……但后来又……”并解释矛盾为何影响结论；没有真实矛盾就不要硬造。首轮没有历史时自主立论，后续优先推进尚未解决的旧争点，也可提出真正相关的新证据或新角度。
 必须先接住被质疑的具体前提、推理或实例，再说明它为何成立、如何修正或为何不影响结论；不要绕开追问换题，也不要只用同义句重复本方口号。区分“对方说了什么”“你对它的理解”“你的反驳”，不要把假设当成对方承认的事实。若对方已回应，应继续检验回应，不能装作没听见。
 只有你是一辩（队长）并真正决定主动认输时，才可以代表全队认输。
@@ -43,13 +45,30 @@ ${stancePrompt}
 
 export function buildPrompts(input: TurnRequest) {
   const prompts = corePrompts(input);
-  return { ...prompts, system: `${prompts.system}\n${budgetPrompt(input)}` };
+  return { system: `${prompts.system}\n${protocolPrompt(input)}\n${budgetPrompt(input)}`, user: `${motionContext(input)}\n${prompts.user}` };
 }
 
 export function demoSpeech(input: TurnRequest): string {
   if (input.kind === 'prep') return demoPreparation(input);
   const special = specialDemo(input);
   if (special) return special;
+  if (input.config.protocol === 'structured' && input.stage) {
+    const opponentIndex = input.history.findIndex(m => m.side !== input.speaker.side && (m.side === 'pro' || m.side === 'con'));
+    const targetIndex = input.history.findIndex(m => m.id === input.replyTo);
+    const opponent = opponentIndex >= 0 ? `[${messageRef(opponentIndex)}]` : '对方已有论证';
+    const material = input.config.evidence?.[0];
+    const citation = material ? `公共材料 [${material.id}] 可以帮助检验适用边界，但引用本身不能代替证明。` : '举生活例子时，要讲清它的适用边界，不能把一个故事当成普遍统计。';
+    const scripts = {
+      opening: `【独立立论演示】围绕「${input.config.topic}」，我方先提出一个论证框架：明确比较对象，再用理由连接主张与结论。${citation}正式交锋时，我们将检验对方是否使用同一标准。`,
+      question: `【定向质询演示】请直接回应 ${opponent} 的推导：当你方主张所依赖的条件无法满足时，结论是否仍然成立？请说明可成立的边界，并举一个能检验该边界的具体情境。`,
+      answer: `【指定回应演示】回应 ${targetIndex >= 0 ? `[${messageRef(targetIndex)}]` : '本次质询'}：条件改变时，原推导需要重新检验；这要求补足适用范围。比如比较两种通勤方案，要同时考虑距离与可用交通，而不能只比单程速度。${citation}`,
+      rebuttal: `【争点攻防演示】回到较早的 ${opponent}，本场要检验的是从理由到比较结论的那一步。生活实例能说明机制，但还应解释它能代表什么、不能代表什么。我方继续追问该边界，避免双方各用一把尺子。`,
+      closing: `【总结陈词演示】回看 ${opponent} 及后续质询，决定性争点是比较标准、适用条件与推导完整性。请按整场回应评价两队，而不能因为某一个例子被击破，就跳到整队失败。此处只归纳已有争点，交由裁判审视。`,
+      overtime: `【加时交锋演示】继续追踪 ${opponent} 尚未解决的推导缺口，结合最新裁判问题直接作答。${citation}本次重点检验原有理由如何支撑比较结论。`,
+      free: '【脚本演示】继续围绕双方已有观点交锋。',
+    };
+    return `${scripts[input.stage]}\n[[CONTINUE]]`;
+  }
   const { speaker, config, round } = input;
   const topic = config.topic.replace(/[？?。！!]+$/, '');
   const hasAudience = input.history.some(m => m.side === 'audience');

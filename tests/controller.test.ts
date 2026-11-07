@@ -23,6 +23,38 @@ async function matchWith(configuration: DebateConfig, reply: (input: TurnRequest
   return { saved, requests };
 }
 
+test('formal matches complete blind openings, paired questioning, closing and equal overtime before adjudication', async () => {
+  const two = { ...config, protocol: 'structured' as const, pace: 'timed' as const, maxRounds: 1, teamSize: 2, teams: { pro: [actor('pro'), { ...actor('pro'), member: 1 }], con: [actor('con'), { ...actor('con'), member: 1 }] } };
+  const { saved, requests } = await matchWith(two, (input, controller) => {
+    if (input.stage === 'opening' && input.speaker.side === 'pro' && input.speaker.member === 0) assert.ok(controller.ask('请解释比较标准。'));
+    return input.kind === 'judge' ? answer({ verdict: input.round === 4 ? 'continue' : 'pro' }) : answer();
+  });
+  assert.equal(saved.config.pace, 'length');
+  assert.equal(saved.config.maxRounds, 4);
+  assert.equal(saved.result.winner, 'pro');
+  assert.deepEqual(requests.filter(r => r.kind === 'judge').map(r => r.round), [4, 5]);
+  assert.ok(requests.every(r => r.timeLimit === 180));
+  const openings = requests.filter(r => r.stage === 'opening');
+  assert.equal(openings.length, 4);
+  assert.ok(openings.every(r => r.history.length === 0), 'all opening participants receive the same blank formal transcript');
+  const questions = requests.filter(r => r.stage === 'question');
+  assert.ok(questions[0].history.some(m => m.side === 'audience'), 'opening questions are queued until both teams can read the complete transcript');
+  const answers = requests.filter(r => r.stage === 'answer');
+  assert.equal(questions.length, 4);
+  assert.equal(answers.length, 4);
+  for (const response of answers) {
+    const question = response.history.at(-1)!;
+    assert.equal(response.replyTo, question.id);
+    assert.equal(question.stage, 'question');
+    assert.notEqual(question.side, response.speaker.side);
+    assert.equal(question.member, response.speaker.member);
+    assert.ok(saved.messages.find(m => m.replyTo === question.id && m.stage === 'answer'));
+  }
+  assert.equal(requests.filter(r => r.stage === 'closing').length, 4);
+  assert.equal(requests.filter(r => r.stage === 'overtime').length, 4);
+  assert.ok(requests.find(r => r.stage === 'closing')?.history.some(m => m.stage === 'opening'));
+});
+
 test('draw and continue verdicts extend play until a genuine winner is confirmed', async () => {
   const { saved, requests } = await matchWith(config, input => input.kind === 'judge' ? answer({ verdict: input.round === 1 ? 'draw' : input.round === 2 ? 'continue' : 'con' }) : answer());
   assert.equal(saved.result.reason, 'judge');

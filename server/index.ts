@@ -7,6 +7,7 @@ import { EXPRESSION_STYLES } from '../shared/styles.ts';
 import { generateTurn } from './debate.ts';
 import { createProvider, getProvider, listProviders, loadProviders, providerHeaders, redact, updateProvider } from './providers.ts';
 import { KeyStorageError } from './keyStorage.ts';
+import { briefSchema, evidenceSchema, stageSchema } from '../shared/caseSchema.ts';
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -29,6 +30,7 @@ app.use(express.json({ limit: '8mb' }));
 const speakerSchema = z.object({ side: z.enum(['pro', 'con']), member: z.number().int().min(0).max(2), providerId: z.string().max(100), modelId: z.string().min(1).max(200), name: z.string().max(80) });
 const actorSchema = speakerSchema.extend({ side: z.enum(['pro', 'con', 'judge']) });
 const configSchema = z.object({
+  protocol: z.enum(['arena', 'structured']).optional(), brief: briefSchema.optional(), evidence: evidenceSchema.optional(),
   rulesVersion: z.number().int().optional(), styles: z.array(z.enum(EXPRESSION_STYLES.map(s => s.id))).min(1).max(6).optional(),
   pace: z.enum(['length', 'timed']).optional(), thinkingSeconds: z.number().int().min(60).max(600).optional(), speechChars: z.number().int().min(100).max(2000).optional(),
   topic: z.string().trim().min(5).max(500), teamSize: z.number().int().min(1).max(3), roundSeconds: z.number().int().min(30).max(600),
@@ -38,8 +40,8 @@ const configSchema = z.object({
 }).refine(c => c.teams.pro.length >= c.teamSize && c.teams.con.length >= c.teamSize, '辩手数量不足');
 const sideScoreSchema = z.object({ judgeResponse: z.number().int().min(0).max(30).optional(), rigor: z.number().int().min(0).max(25), coherence: z.number().int().min(0).max(25), rebuttal: z.number().int().min(0).max(25), evidence: z.number().int().min(0).max(15), expression: z.number().int().min(0).max(10) });
 const scoreSchema = z.object({ pro: sideScoreSchema, con: sideScoreSchema, tiebreak: z.string().max(1000).optional() });
-const utteranceSchema = z.object({ id: z.string(), side: z.enum(['pro', 'con', 'audience', 'judge']), member: z.number(), name: z.string(), model: z.string(), round: z.number(), text: z.string().max(40000), timestamp: z.number(), elapsed: z.number().optional(), timeLimit: z.number().optional(), charLimit: z.number().optional(), warning: z.string().max(1000).optional(), conceded: z.boolean().optional(), forfeited: z.boolean().optional(), scores: scoreSchema.optional(), finishReason: z.string().optional(), kind: z.enum(['prep', 'speech', 'judge', 'appeal', 'review']).optional(), verdict: z.enum(['pro', 'con', 'draw', 'continue']).optional(), appealed: z.boolean().optional(), appealAttempt: z.union([z.literal(1), z.literal(2)]).optional() });
-const turnSchema = z.object({ config: configSchema, speaker: actorSchema, round: z.number().int().min(1), timeLimit: z.number().min(.05).max(600), history: z.array(utteranceSchema), preparation: z.array(utteranceSchema).max(24).optional(), kind: z.enum(['prep', 'speech', 'judge', 'appeal', 'review']).optional(), isFinal: z.boolean().optional(), priorVerdict: z.enum(['pro', 'con', 'draw', 'continue']).optional(), overtimeRound: z.number().int().min(0).optional(), forceScoring: z.boolean().optional(), appealAttempt: z.union([z.literal(1), z.literal(2)]).optional() });
+const utteranceSchema = z.object({ stage: stageSchema.optional(), replyTo: z.string().max(100).optional(), id: z.string(), side: z.enum(['pro', 'con', 'audience', 'judge']), member: z.number(), name: z.string(), model: z.string(), round: z.number(), text: z.string().max(40000), timestamp: z.number(), elapsed: z.number().optional(), timeLimit: z.number().optional(), charLimit: z.number().optional(), warning: z.string().max(1000).optional(), conceded: z.boolean().optional(), forfeited: z.boolean().optional(), scores: scoreSchema.optional(), finishReason: z.string().optional(), kind: z.enum(['prep', 'speech', 'judge', 'appeal', 'review']).optional(), verdict: z.enum(['pro', 'con', 'draw', 'continue']).optional(), appealed: z.boolean().optional(), appealAttempt: z.union([z.literal(1), z.literal(2)]).optional() });
+const turnSchema = z.object({ stage: stageSchema.optional(), replyTo: z.string().max(100).optional(), config: configSchema, speaker: actorSchema, round: z.number().int().min(1), timeLimit: z.number().min(.05).max(600), history: z.array(utteranceSchema), preparation: z.array(utteranceSchema).max(24).optional(), kind: z.enum(['prep', 'speech', 'judge', 'appeal', 'review']).optional(), isFinal: z.boolean().optional(), priorVerdict: z.enum(['pro', 'con', 'draw', 'continue']).optional(), overtimeRound: z.number().int().min(0).optional(), forceScoring: z.boolean().optional(), appealAttempt: z.union([z.literal(1), z.literal(2)]).optional() });
 const providerSchema = z.object({
   name: z.string().trim().min(1).max(60),
   baseUrl: z.url().refine(value => ['http:', 'https:'].includes(new URL(value).protocol) && !new URL(value).username && !new URL(value).password, '请输入不含用户名和密码的 HTTP(S) Base URL'),

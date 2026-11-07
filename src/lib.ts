@@ -3,6 +3,8 @@ import { FORMAT_LABEL, SIDE_LABEL, speakerName, normalizeJudgeTitle, type Uttera
 import { scoreEntry, type ScoreEntry } from '../shared/statistics';
 import { effectiveStyles, styleLabels } from '../shared/styles';
 import { scoreDimensions, readScorecard, scoreTotal } from '../shared/adjudication';
+import { briefSchema, evidenceSchema } from '../shared/caseSchema';
+import { EMPTY_BRIEF, EVIDENCE_LABEL, MOTION_LABEL, STAGE_LABEL, messageRef, regulationRounds } from '../shared/protocol';
 
 export const TOPICS = [
   'AI 的发展，最终会让人类更自由吗？',
@@ -19,6 +21,7 @@ function team(side: 'pro' | 'con'): Speaker[] {
   return Array.from({ length: 3 }, (_, member) => ({ side, member, providerId: 'demo', modelId: side === 'pro' ? '演示模型 A' : '演示模型 B', name: speakerName(side, member) }));
 }
 export const DEFAULT_CONFIG: DebateConfig = {
+  protocol: 'arena', brief: { ...EMPTY_BRIEF }, evidence: [],
   pace: 'length', thinkingSeconds: 180, speechChars: 400, topic: TOPICS[0], teamSize: 1, roundSeconds: 120, matchSeconds: 300, prepSeconds: 30, maxRounds: 3,
   format: 'classic', language: 'natural', styles: ['natural', 'sharp', 'humorous', 'literary'], demo: true, teams: { pro: team('pro'), con: team('con') },
   judge: { enabled: false, providerId: 'demo', modelId: '裁判', appeals: true, timing: 'final' },
@@ -28,13 +31,16 @@ export function loadConfig(): DebateConfig {
   try {
     const saved = JSON.parse(localStorage.getItem('zhengming-config') || 'null');
     if (saved && typeof saved.topic === 'string' && [1, 2, 3].includes(saved.teamSize) &&
-      [60, 120, 180, 300].includes(saved.roundSeconds) && [0, 1, 2, 3, 5, 6, 10, 20, 30].includes(saved.maxRounds) &&
+      [60, 120, 180, 300].includes(saved.roundSeconds) && [0, 1, 2, 3, 4, 5, 6, 10, 20, 30].includes(saved.maxRounds) &&
       ['classic', 'crossfire', 'socratic'].includes(saved.format) && typeof saved.demo === 'boolean' &&
       ['pro', 'con'].every(side => Array.isArray(saved.teams?.[side]) && saved.teams[side].length === 3 && saved.teams[side].every((s: Speaker) => typeof s.modelId === 'string' && typeof s.providerId === 'string'))) {
       const judge = saved.judge && typeof saved.judge.enabled === 'boolean' && typeof saved.judge.providerId === 'string' && typeof saved.judge.modelId === 'string' && typeof saved.judge.appeals === 'boolean' ? { ...saved.judge, timing: saved.judge.timing === 'coach' ? 'coach' : 'final' } : { ...DEFAULT_CONFIG.judge };
       if (judge.providerId === 'demo') judge.modelId = '裁判';
       const matchSeconds = [60, 180, 300, 600, 900, 1800].includes(saved.matchSeconds) ? saved.matchSeconds : 300;
-      return { ...saved, styles: effectiveStyles(saved), pace: saved.pace === 'timed' ? 'timed' : 'length', thinkingSeconds: [60,120,180,300,600].includes(saved.thinkingSeconds) ? saved.thinkingSeconds : 180, speechChars: [200,400,600,1000].includes(saved.speechChars) ? saved.speechChars : 400, judge, matchSeconds, prepSeconds: [0, 30, 60, 120, 180].includes(saved.prepSeconds) ? saved.prepSeconds : 30, language: ['natural', 'witty', 'rigorous'].includes(saved.language) ? saved.language : 'natural', maxRounds: saved.pace === 'timed' ? saved.maxRounds : saved.maxRounds || 3, teams: {
+      const protocol = saved.protocol === 'structured' ? 'structured' : 'arena';
+      const brief = briefSchema.safeParse(saved.brief);
+      const evidence = evidenceSchema.safeParse(saved.evidence);
+      return { ...saved, protocol, brief: brief.success ? brief.data : { ...EMPTY_BRIEF }, evidence: evidence.success ? evidence.data : [], styles: effectiveStyles(saved), pace: protocol === 'structured' ? 'length' : saved.pace === 'timed' ? 'timed' : 'length', thinkingSeconds: [60,120,180,300,600].includes(saved.thinkingSeconds) ? saved.thinkingSeconds : 180, speechChars: [200,400,600,1000].includes(saved.speechChars) ? saved.speechChars : 400, judge, matchSeconds, prepSeconds: [0, 30, 60, 120, 180].includes(saved.prepSeconds) ? saved.prepSeconds : 30, language: ['natural', 'witty', 'rigorous'].includes(saved.language) ? saved.language : 'natural', maxRounds: protocol === 'structured' ? regulationRounds(saved) : saved.pace === 'timed' ? saved.maxRounds : saved.maxRounds || 3, teams: {
         pro: saved.teams.pro.map((s: Speaker, member: number) => ({ ...s, side: 'pro', member, name: speakerName('pro', member), modelId: saved.demo ? '演示模型 A' : s.modelId })),
         con: saved.teams.con.map((s: Speaker, member: number) => ({ ...s, side: 'con', member, name: speakerName('con', member), modelId: saved.demo ? '演示模型 B' : s.modelId })),
       } };
@@ -110,10 +116,15 @@ export function exportMatch(match: Match) {
     `- 赛制：${config.judge.timing === 'coach' ? '裁判指导赛（每轮点评）' : '极限攻防（常规结束后裁决）'}；${(config.rulesVersion || 0) >= 2 && config.judge.enabled ? '未决加时，完整三轮后按整场表现评分决胜' : '未分胜负持续加时'}，可手动结束。`,
     `- 语言风格：${styleLabels(config)}`,
     `- 来源：${config.demo ? '演示模式（预设脚本，非真实模型输出）' : '真实模型 API'}`,
+    `- 比赛规程：${config.protocol === 'structured' ? '分阶段正式赛 · 独立立论 / 双向质询 / 争点攻防 / 总结陈词' : '自由攻防'}`,
     `- 裁判：${config.judge.enabled ? `裁判（${config.judge.modelId}） · ${config.judge.appeals ? '允许一次申诉' : '不接受申诉'}` : '无裁判'}`,
-    `- 结果：${match.result.detail}`, '', '---', '',
+    `- 结果：${match.result.detail}`, '',
+    '## 赛题约定与公共资料', '',
+    ...(config.brief ? [`- 命题类型：${MOTION_LABEL[config.brief.kind]}`, ...(['definitions', 'scope', 'criterion', 'proBurden', 'conBurden'] as const).map((key, i) => `- ${['概念定义', '讨论范围', '比较标准', '正方举证', '反方举证'][i]}：${config.brief![key] || '未预设，由双方公开论证'}`)] : ['未预设赛题约定。']), '',
+    ...(config.evidence || []).flatMap(card => [`### [${card.id}] ${card.title}`, `${EVIDENCE_LABEL[card.kind]} · ${card.source || '未填写出处'}`, '', card.content, '']),
+    '---', '',
     ...(match.preparation?.length ? ['# 赛前更衣室（双方模型各自只能读取本队内容）', '', ...match.preparation.flatMap(m => [`## 第 ${m.round} 次商议 · ${m.name}（${m.model}）`, '', m.text, '']), '---', '', '# 正式比赛', ''] : []),
-    ...match.messages.flatMap(m => [`## 第 ${m.round} 轮 · ${m.name}${m.side === 'audience' ? '' : `（${m.model}）`}`, '', m.text, '', ...scoreMarkdown(m.scores), ...(m.forfeited ? ['> 本方明确弃守立场，按规则判负。', ''] : []), ...(m.timeLimit !== undefined ? [`> 本次最长等待：${m.timeLimit} 秒；正文上限 ${m.charLimit || config.speechChars || 400} 字。`, ''] : []), ...(m.finishReason === 'timeout' ? ['> 本次发言因等待超时结束。', ''] : []), ...(m.warning ? [`> ${m.warning}`, ''] : [])]),
+    ...match.messages.flatMap((m, index) => [`## [${messageRef(index)}] 第 ${m.round} 轮 · ${m.name}${m.side === 'audience' ? '' : `（${m.model}）`}${m.stage ? ` · ${STAGE_LABEL[m.stage]}` : ''}`, ...(m.replyTo && match.messages.some(target => target.id === m.replyTo) ? [`> 指定回应 [${messageRef(match.messages.findIndex(target => target.id === m.replyTo))}]`] : []), '', m.text, '', ...scoreMarkdown(m.scores), ...(m.forfeited ? ['> 本方明确弃守立场，按规则判负。', ''] : []), ...(m.timeLimit !== undefined ? [`> 本次最长等待：${m.timeLimit} 秒；正文上限 ${m.charLimit || config.speechChars || 400} 字。`, ''] : []), ...(m.finishReason === 'timeout' ? ['> 本次发言因等待超时结束。', ''] : []), ...(m.warning ? [`> ${m.warning}`, ''] : [])]),
   ].join('\n');
   const blob = new Blob([normalizeJudgeTitle(content)], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);

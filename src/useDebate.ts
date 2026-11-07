@@ -3,7 +3,8 @@ import { streamTurn } from './turnStream';
 import { roundTurnSeconds, thinkingLimit, visibleCharLimit, winningSide } from '../shared/budget';
 import { SCORED_OVERTIME_ROUNDS, readScorecard, scoreWinner } from '../shared/adjudication';
 import { acceptsRuling } from '../shared/decision';
-import { SIDE_LABEL, shouldAdjudicate, shouldComment, turnOrder, type Actor, type DebateConfig, type Match, type MatchResult, type MatchStatus, type TurnKind, type Utterance, type Verdict } from '../shared/types';
+import { planRound, regulationRounds, type DebateStage } from '../shared/protocol';
+import { SIDE_LABEL, type Actor, type DebateConfig, type Match, type MatchResult, type MatchStatus, type TurnKind, type Utterance, type Verdict } from '../shared/types';
 
 interface Context {
   id: string;
@@ -67,12 +68,12 @@ export function useDebate(onSave: (match: Match) => void) {
 
   async function start(config: DebateConfig) {
     config = { ...config, rulesVersion: 4 };
+    if (config.protocol === 'structured') config = { ...config, pace: 'length', maxRounds: regulationRounds(config) };
     ctxRef.current?.controller.abort();
     const ctx: Context = { id: crypto.randomUUID(), config: structuredClone(config), history: [], preparation: [], preparing: {}, controller: new AbortController(), pauseRequested: false, actuallyPaused: false, round: 0, deadline: Date.now() + (config.prepSeconds || config.roundSeconds) * 1000, matchDeadline: Date.now() + config.matchSeconds * 1000, phase: config.prepSeconds ? 'preparing' : 'debate', createdAt: Date.now(), audience: [], pending: null, finished: false };
     ctxRef.current = ctx;
     setOvertime(false); setNotice('');
     setLiveConfig(ctx.config); setViewedMatch(null); setMessages([]); setPreparation([]); setResult(null); setRound(0); setRemaining(config.prepSeconds || config.matchSeconds); setStatus('running');
-    const order = turnOrder(config);
     setPhase(ctx.phase);
     const publishPreparation = () => setPreparation([...ctx.preparation, ...Object.values(ctx.preparing)].sort((a, b) => a.timestamp - b.timestamp));
     function ensureActive() {
@@ -93,18 +94,18 @@ export function useDebate(onSave: (match: Match) => void) {
         setStatus('running');
       }
     }
-    async function playTurn(speaker: Actor, kind: TurnKind, timeLimit: number, extra: { isFinal?: boolean; priorVerdict?: Verdict; round?: number; overtimeRound?: number; forceScoring?: boolean; appealAttempt?: 1 | 2 } = {}) {
+    async function playTurn(speaker: Actor, kind: TurnKind, timeLimit: number, extra: { stage?: DebateStage; replyTo?: string; isFinal?: boolean; priorVerdict?: Verdict; round?: number; overtimeRound?: number; forceScoring?: boolean; appealAttempt?: 1 | 2 } = {}) {
       ensureActive();
       const isPrep = kind === 'prep' && speaker.side !== 'judge';
       if (!isPrep) await checkpoint();
-      if (kind === 'speech' && ctx.audience.length) {
+      if (kind === 'speech' && extra.stage !== 'opening' && ctx.audience.length) {
         for (const text of ctx.audience.splice(0)) ctx.history.push({ id: crypto.randomUUID(), side: 'audience', member: 0, name: '观众席', model: '', round: ctx.round, text, timestamp: Date.now() });
       }
       if (!isPrep && (kind !== 'speech' || config.pace !== 'timed')) ctx.deadline = Date.now() + timeLimit * 1000;
-      const current: Utterance = { id: crypto.randomUUID(), side: speaker.side, member: speaker.member, name: speaker.name, model: speaker.modelId, round: extra.round || ctx.round, text: '', timestamp: Date.now(), kind, timeLimit, charLimit: visibleCharLimit(config, kind), ...(extra.appealAttempt ? { appealAttempt: extra.appealAttempt } : {}) };
+      const current: Utterance = { id: crypto.randomUUID(), side: speaker.side, member: speaker.member, name: speaker.name, model: speaker.modelId, round: extra.round || ctx.round, text: '', timestamp: Date.now(), kind, timeLimit, charLimit: visibleCharLimit(config, kind), stage: extra.stage, replyTo: extra.replyTo, ...(extra.appealAttempt ? { appealAttempt: extra.appealAttempt } : {}) };
       if (isPrep) { ctx.preparing[speaker.side as 'pro' | 'con'] = current; publishPreparation(); }
       else { ctx.pending = current; setActive(speaker); setMessages([...ctx.history, { ...current }]); }
-      const source = isPrep ? ctx.preparation.filter(m => m.side === speaker.side) : ctx.history;
+      const source = isPrep ? ctx.preparation.filter(m => m.side === speaker.side) : extra.stage === 'opening' ? [] : ctx.history;
       const history = source;
       const ownPreparation = speaker.side === 'judge' ? [] : ctx.preparation.filter(m => m.side === speaker.side);
       for await (const event of streamTurn({ config, speaker, kind, round: current.round, timeLimit, history, preparation: ownPreparation, ...extra }, ctx.controller.signal)) {
@@ -202,7 +203,7 @@ export function useDebate(onSave: (match: Match) => void) {
       ctx.matchDeadline = Date.now() + config.matchSeconds * 1000;
       ctx.phase = 'debate'; setPhase('debate');
       const lengthMode = config.pace !== 'timed';
-      const regulationRounds = config.maxRounds || 3;
+      const regularRounds = regulationRounds(config);
       let inOvertime = false;
       let overtimeRounds = 0;
       for (let r = 1; ; r++) {
@@ -210,14 +211,16 @@ export function useDebate(onSave: (match: Match) => void) {
         ctx.round = r;
         if (inOvertime && !lengthMode) ctx.matchDeadline = Date.now() + config.roundSeconds * 1000;
         ctx.deadline = Date.now() + config.roundSeconds * 1000;
-        const equalTurnLimit = roundTurnSeconds(config.roundSeconds, config.roundSeconds, order.length);
+        const plan = planRound(config, r, inOvertime);
+        const equalTurnLimit = roundTurnSeconds(config.roundSeconds, config.roundSeconds, plan.length);
         setRound(r); ctx.phase = 'debate'; setPhase('debate');
-        for (const speaker of order) {
+        for (const { speaker, stage } of plan) {
           await checkpoint();
           const roundRemaining = (ctx.deadline - Date.now()) / 1000;
           if (!lengthMode && roundRemaining < .05) break;
           const timeLimit = lengthMode ? thinkingLimit(config) : Math.max(.05, Math.min(equalTurnLimit, roundRemaining));
-          const current = await playTurn(speaker, 'speech', timeLimit, { overtimeRound: inOvertime ? overtimeRounds + 1 : 0 });
+          const question = stage === 'answer' ? [...ctx.history].reverse().find(m => m.stage === 'question' && m.side !== speaker.side) : undefined;
+          const current = await playTurn(speaker, 'speech', timeLimit, { stage, replyTo: question?.id, overtimeRound: inOvertime ? overtimeRounds + 1 : 0 });
           if (current.forfeited && current.finishReason === 'stop') {
             const winner = speaker.side === 'pro' ? 'con' : 'pro';
             finish(ctx, { reason: 'forfeit', winner, detail: `${SIDE_LABEL[speaker.side]}${speaker.member + 1}辩明确宣布立场弃守，按规则本队判负，${SIDE_LABEL[winner]}获胜。` }, 'completed');
@@ -229,7 +232,7 @@ export function useDebate(onSave: (match: Match) => void) {
             return;
           }
         }
-        const regulationEnded = lengthMode ? r >= regulationRounds : Date.now() >= ctx.matchDeadline || config.maxRounds > 0 && r >= config.maxRounds;
+        const regulationEnded = lengthMode ? r >= regularRounds : Date.now() >= ctx.matchDeadline || config.maxRounds > 0 && r >= config.maxRounds;
         if (inOvertime || regulationEnded) {
           if (inOvertime) overtimeRounds++;
           if (config.judge.enabled) {

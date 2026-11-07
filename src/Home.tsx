@@ -1,5 +1,5 @@
 import { styleLabels } from '../shared/styles';
-import { ArrowRight, Clock3, Crown, DoorOpen, MessageCircle, PlugZap, Shuffle, Sparkles, Users } from 'lucide-react';
+import { ArrowRight, Clock3, FileText, Crown, DoorOpen, MessageCircle, PlugZap, Shuffle, Sparkles, Users } from 'lucide-react';
 import type { DebateConfig } from '../shared/types';
 import { TOPICS } from './lib';
 import type { SetupModule } from './SetupDialog';
@@ -8,6 +8,7 @@ import ArenaArt from './ArenaArt';
 interface Props { config: DebateConfig; setConfig: React.Dispatch<React.SetStateAction<DebateConfig>>; busy: boolean; onStart: () => void; onModule: (module: SetupModule) => void; onConnect: () => void; connected: number }
 export default function Home({ config, setConfig, busy, onStart, onModule, onConnect, connected }: Props) {
   const cards = [
+    { id: 'case' as const, icon: FileText, title: '赛题与规程', value: config.protocol === 'structured' ? '分阶段正式赛' : '自由攻防', text: `${config.evidence?.length || 0} 条公共资料 · 定义、标准与举证` },
     { id: 'teams' as const, icon: Users, title: '对战阵容', value: `${config.teamSize} v ${config.teamSize}`, text: config.demo ? '脚本演示 · 自由分工' : '真实模型 · 每席独立选择' },
     { id: 'schedule' as const, icon: Clock3, title: '发言预算', value: config.pace === 'timed' ? `常规 ${config.matchSeconds / 60} 分钟` : `${config.speechChars || 400} 字 / 次`, text: config.pace === 'timed' ? `每轮 ${config.roundSeconds / 60} 分钟 · 未决加时` : `最长等待 ${config.thinkingSeconds || 180} 秒 · 未决加时` },
     { id: 'prep' as const, icon: DoorOpen, title: '赛前备战', value: config.prepSeconds ? `${config.prepSeconds} 秒私密讨论` : '直接开场', text: '自行商议战术、分工与预判' },

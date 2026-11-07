@@ -1,10 +1,11 @@
 import { SIDE_LABEL, type TurnRequest } from '../shared/types.ts';
 import { voicePrompt } from './voice.ts';
 import { SCORE_DIMENSIONS, SCORED_OVERTIME_ROUNDS } from '../shared/adjudication.ts';
+import { STAGE_LABEL, messageRef } from '../shared/protocol.ts';
 
 export function transcriptFor(input: TurnRequest) {
   const history = input.history;
-  return history.map(m => `[第${m.round}轮 · ${m.side === 'audience' ? '观众提问' : m.side === 'judge' ? '裁判' : `${SIDE_LABEL[m.side]}${m.member + 1}辩`}${m.kind === 'appeal' ? ' · 申诉' : m.kind === 'review' ? ' · 复核' : ''}]\n${m.text.slice(0, 6000)}`).join('\n\n');
+  return history.map((m, index) => `[${messageRef(index)}] [第${m.round}轮 · ${m.side === 'audience' ? '观众提问' : m.side === 'judge' ? '裁判' : `${SIDE_LABEL[m.side]}${m.member + 1}辩`}${m.stage ? ` · ${STAGE_LABEL[m.stage]}` : ''}${m.kind === 'appeal' ? ' · 申诉' : m.kind === 'review' ? ' · 复核' : ''}${m.finishReason && m.finishReason !== 'stop' ? ` · ${m.finishReason}，发言未正常完成` : ''}]\n${m.text.slice(0, 6000)}`).join('\n\n');
 }
 
 export function specialPrompts(input: TurnRequest): { system: string; user: string } | null {
@@ -37,6 +38,14 @@ ${voicePrompt(config.language, config.styles)}
 
 export function specialDemo(input: TurnRequest): string | null {
   if ((input.kind === 'judge' || input.kind === 'review') && input.forceScoring && input.isFinal) return '本次按整场表现评分。正方开场建立了清楚的条件，后续接住退出机制的质疑；反方追问有力，但对修正后的主张仍有回应缺口。综合严密度、自洽性、攻防、实例与表达，正方以较小优势获胜。这是预设脚本演示，不代表模型真实能力。\n<decision>{"verdict":"pro","scores":{"pro":{"judgeResponse":30,"rigor":17,"coherence":18,"rebuttal":12,"evidence":8,"expression":4},"con":{"judgeResponse":30,"rigor":16,"coherence":16,"rebuttal":11,"evidence":8,"expression":4}}}</decision>';
+  if (input.config.protocol === 'structured') {
+    const last = input.history.length ? `[${messageRef(input.history.length - 1)}]` : '已有记录';
+    if (input.kind === 'judge') return input.isFinal
+      ? `【正式赛裁决演示】双方已经完成独立立论、指定质询与回答、争点攻防和总结。回看 [M1]、[M2] 到 ${last}，裁判需要逐条比较核心论证与有效回应，并说明局部漏洞如何影响整场结论。\n\n本场预设脚本给出正方胜，供演示后续申诉流程。这个结果用于展示程序，不评价真实模型表现。\n<decision>{"verdict":"pro"}</decision>`
+      : `【指导点评演示】请双方接着 ${last} 的争点，明确比较标准与条件变化的影响，各自给出具体依据。双方按赛程继续发言，终局再评胜负。\n<decision>{"verdict":"continue"}</decision>`;
+    if (input.kind === 'appeal') return `【申诉演示】针对 ${last} 的判词，我方请求裁判逐条说明双方核心论证及质询回应如何影响结果，并解释为什么局部漏洞足以改变整场比较。请依据完整记录复核。此为预设流程演示。\n<decision>{"appealed":true}</decision>`;
+    if (input.kind === 'review') return `【复核演示】已收到 ${last} 的具体申诉。复核应核对争议发言与问题、比较双方回应机会，再明确说明维持或改判的理由。当前预设脚本维持正方胜，完成整套申诉程序。实际比赛将由你所选模型结合整场记录独立判断。\n<decision>{"verdict":"pro"}</decision>`;
+  }
   if (input.kind === 'review') return `反方队长的申诉有一点成立：我此前把“有条件的机会增加”与“必然的结果改善”说得过于接近。裁判也应该被追问，而不是被供起来。\n\n不过，复核发言记录后，正方已经明确承认透明、问责和退出机制是必要条件，反方并未证明这些条件在原则上不可能成立。因此，这一修正不足以推翻原判。\n\n裁判裁定：维持正方获胜。反方的申诉有价值，已记入本场复盘。\n[[VERDICT:PRO]]`;
   if (input.kind === 'judge') return input.isFinal ? `双方真正的分歧，并不是要不要进步，而是谁为进步附带的风险负责。正方给出了有条件的推进方案，并回应了反方对透明、问责与退出机制的质疑；反方提出了有力的提醒，但尚未完成对这个限定命题的反证。\n\n因此，我判定正方略胜。判胜不等于正方在现实中永远正确，只表示在本场展示的论证范围内，正方承担举证责任更充分。\n\n不服判词，可以拿出具体论证。裁判接受质疑。\n[[VERDICT:PRO]]` : `第${input.round}轮点评：正方把讨论推进到了“能否扩大选择空间”，反方则追问“谁掌握规则、谁承担代价”。双方讨论的是同一个命题的不同层面，暂时不宜草率判胜。\n\n下一轮请双方共同回答：你们所说的“更好”到底以什么标准衡量？先把判断尺度摆上桌，交锋才能真正发生。\n[[VERDICT:CONTINUE]]`;
   if (input.kind === 'appeal') return `裁判，这个判词我不完全接受。您认为正方提出了透明、问责与退出机制，就算回应了我的质疑；但“提出一个机制”与“证明机制可行”，仍然不是同一件事。\n\n我方申诉的具体理由是：原判把一项尚待证明的前提，当成了已经兑现的保障。请裁判指出，正方在哪一段发言中证明了这些保障能在关键冲突下依然成立？如果没有，这个举证责任不能被略过。\n[[APPEAL]]`;

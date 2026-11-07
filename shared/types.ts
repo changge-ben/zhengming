@@ -1,6 +1,7 @@
 import { readDecision } from './decision.ts';
 import type { Scorecard } from './adjudication.ts';
 import type { ExpressionStyle } from './styles.ts';
+import type { DebateBrief, EvidenceCard, DebateStage } from './protocol.ts';
 export type Side = 'pro' | 'con';
 export type Format = 'classic' | 'crossfire' | 'socratic';
 export type MatchStatus = 'idle' | 'running' | 'pausing' | 'paused' | 'completed' | 'stopped' | 'error';
@@ -26,6 +27,9 @@ export interface Speaker {
 }
 
 export interface DebateConfig {
+  protocol?: 'arena' | 'structured';
+  brief?: DebateBrief;
+  evidence?: EvidenceCard[];
   rulesVersion?: number;
   pace?: 'length' | 'timed';
   thinkingSeconds?: number;
@@ -45,6 +49,8 @@ export interface DebateConfig {
 }
 
 export interface Utterance {
+  stage?: DebateStage;
+  replyTo?: string;
   id: string;
   side: Side | 'audience' | 'judge';
   member: number;
@@ -84,6 +90,8 @@ export interface Match {
 }
 
 export interface TurnRequest {
+  stage?: DebateStage;
+  replyTo?: string;
   config: DebateConfig;
   speaker: Actor;
   round: number;
