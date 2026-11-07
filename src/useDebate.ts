@@ -128,7 +128,7 @@ export function useDebate(onSave: (match: Match) => void) {
       ensureActive();
       return current;
     }
-    const judge: Actor = { side: 'judge', member: 0, providerId: config.judge.providerId, modelId: config.judge.modelId, name: 'Astra 大人' };
+    const judge: Actor = { side: 'judge', member: 0, providerId: config.judge.providerId, modelId: config.judge.modelId, name: '裁判' };
     async function specialTurn(speaker: Actor, kind: 'judge' | 'appeal' | 'review', extra: { isFinal?: boolean; priorVerdict?: Verdict; overtimeRound?: number; forceScoring?: boolean; appealAttempt?: 1 | 2 } = {}) {
       ensureActive();
       ctx.phase = kind === 'appeal' ? 'appealing' : kind === 'review' ? 'reviewing' : 'judging';
@@ -235,7 +235,7 @@ export function useDebate(onSave: (match: Match) => void) {
           if (config.judge.enabled) {
             const decision = await determineWinner(overtimeRounds);
             if (decision) {
-              finish(ctx, { reason: 'judge', winner: decision.winner, detail: `Astra 大人${decision.scored ? '按整场表现评分决胜' : decision.appealed ? '完成申诉复核' : '确认胜负'}：${SIDE_LABEL[decision.winner]}获胜。${decision.appealed ? '申诉与复核已记入档案。' : ''}` }, 'completed');
+              finish(ctx, { reason: 'judge', winner: decision.winner, detail: `裁判${decision.scored ? '按整场表现评分决胜' : decision.appealed ? '完成申诉复核' : '确认胜负'}：${SIDE_LABEL[decision.winner]}获胜。${decision.appealed ? '申诉与复核已记入档案。' : ''}` }, 'completed');
               return;
             }
           }

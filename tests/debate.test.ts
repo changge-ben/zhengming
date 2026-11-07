@@ -83,7 +83,7 @@ test('truncated control suffixes are hidden without erasing quoted prose', () =>
   assert.equal(stripControlFragment('正文。\n[普通备注'), '正文。\n[普通备注');
   assert.equal(stripControlFragment('正文。\n[[CONCEDE]]'), '正文。\n[[CONCEDE]]');
 });
-test('primary mode keeps Astra silent until the match expires', () => {
+test('primary mode keeps the judge silent until the match expires', () => {
   const main = { ...config, maxRounds: 0, judge: { ...config.judge, enabled: true } };
   for (const round of [1, 3, 30, 100]) assert.equal(shouldComment(main, round, false), false);
   assert.equal(shouldAdjudicate(main, false), false);

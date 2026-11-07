@@ -104,6 +104,10 @@ export type StreamEvent =
   | { type: 'error'; message: string };
 
 export const SIDE_LABEL: Record<Side, string> = { pro: '正方', con: '反方' };
+/** Display legacy role titles consistently without changing API model identifiers. */
+export function normalizeJudgeTitle(text: string): string {
+  return text.replace(/Astra\s*(?:大人|裁判)/gi, '裁判');
+}
 export type Actor = Omit<Speaker, 'side'> & { side: Side | 'judge' };
 export type Verdict = 'pro' | 'con' | 'draw' | 'continue';
 export type TurnKind = 'prep' | 'speech' | 'judge' | 'appeal' | 'review';

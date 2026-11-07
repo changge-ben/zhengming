@@ -45,7 +45,7 @@ export default function Workspace() {
     if (!ready) { notify('请先重新连接本地服务。'); return; }
     if (config.topic.trim().length < 5) { notify('请写一个至少 5 个字的辩题。'); document.getElementById('home-topic')?.focus(); return; }
     if (!config.demo) {
-      const actors = [...config.teams.pro.slice(0, config.teamSize), ...config.teams.con.slice(0, config.teamSize), ...(config.judge.enabled ? [{ ...config.judge, name: 'Astra 大人' }] : [])];
+      const actors = [...config.teams.pro.slice(0, config.teamSize), ...config.teams.con.slice(0, config.teamSize), ...(config.judge.enabled ? [{ ...config.judge, name: '裁判' }] : [])];
       const missing = actors.find(s => !options.find(o => o.providerId === s.providerId && o.modelId === s.modelId)?.available);
       if (missing) { notify(`${missing.name}的模型尚未接入，请检查 API 配置与阵容。`); setSettings(true); return; }
     }
@@ -64,9 +64,9 @@ export default function Workspace() {
           ['01 · 大厅布置', '输入辩题，点击设置卡片挑选阵容、时间与语言偏好。没有人设或思维派别限制，战术由模型自己决定。'],
           ['02 · 赛前更衣室', '可选 30～180 秒独立备战，双方同时商议。每名模型只收到本队准备，观众可以查看两个房间。备战不占正式比赛时间。'],
           ['03 · 极限攻防', '双方轮流出招。一辩作为队长，可以在完整发言后代表本队认输。默认按正文字数限制，每位选手都可独立等待 180 秒，不再平分整轮时间。字数与等待上限均可设置。'],
-          ['04 · Astra 裁判席', '默认比赛中保持沉默；常规阶段结束后才裁决，未分胜负则加时一轮再评，完整三轮仍未决就按整场表现评分决胜。可选裁判指导赛，逐轮点评。双方在每次裁决中各有一次申诉机会；改判后新败方同样可申诉。双方都申诉成功则完整加时一轮，再重新裁决。'],
+          ['04 · 裁判席', '默认比赛中保持沉默；常规阶段结束后才裁决，未分胜负则加时一轮再评，完整三轮仍未决就按整场表现评分决胜。可选裁判指导赛，逐轮点评。双方在每次裁决中各有一次申诉机会；改判后新败方同样可申诉。双方都申诉成功则完整加时一轮，再重新裁决。'],
           ['05 · 观众与暂停', '在主战场提问，下一位选手会收到。暂停在当前发言或当前备战讨论结束后生效；停止立即取消连接并保存已有内容。页面内切换不会中断比赛。'],
-          ['06 · 战绩与数据', '战绩保存在当前浏览器，真实与演示默认分开。同模型多个席位按队计一次，两边都有则记自我对战。未分胜负、平局与中止分别处理。Astra 是裁判称号，需要单独选真实模型。'],
+          ['06 · 战绩与数据', '战绩保存在当前浏览器，真实与演示默认分开。同模型多个席位按队计一次，两边都有则记自我对战。未分胜负、平局与中止分别处理。裁判需要单独选择实际调用的模型。'],
         ].map(([title, body]) => <article className="help-card" key={title}><h2>{title}</h2><p>{body}</p></article>)}</div><p className="subtle-notice">演示为预设脚本，不代表真实模型能力。清理浏览器数据会丢失本地档案与战绩，重要比赛请导出。</p></section>}
       </main>
     </div>

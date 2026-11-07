@@ -1,5 +1,5 @@
 import type { DebateConfig, Match, Provider, Speaker } from '../shared/types';
-import { FORMAT_LABEL, SIDE_LABEL, speakerName } from '../shared/types';
+import { FORMAT_LABEL, SIDE_LABEL, speakerName, normalizeJudgeTitle, type Utterance } from '../shared/types';
 import { scoreEntry, type ScoreEntry } from '../shared/statistics';
 import { effectiveStyles, styleLabels } from '../shared/styles';
 import { scoreDimensions, readScorecard, scoreTotal } from '../shared/adjudication';
@@ -21,7 +21,7 @@ function team(side: 'pro' | 'con'): Speaker[] {
 export const DEFAULT_CONFIG: DebateConfig = {
   pace: 'length', thinkingSeconds: 180, speechChars: 400, topic: TOPICS[0], teamSize: 1, roundSeconds: 120, matchSeconds: 300, prepSeconds: 30, maxRounds: 3,
   format: 'classic', language: 'natural', styles: ['natural', 'sharp', 'humorous', 'literary'], demo: true, teams: { pro: team('pro'), con: team('con') },
-  judge: { enabled: false, providerId: 'demo', modelId: 'Astra 大人', appeals: true, timing: 'final' },
+  judge: { enabled: false, providerId: 'demo', modelId: '裁判', appeals: true, timing: 'final' },
 };
 
 export function loadConfig(): DebateConfig {
@@ -31,7 +31,8 @@ export function loadConfig(): DebateConfig {
       [60, 120, 180, 300].includes(saved.roundSeconds) && [0, 1, 2, 3, 5, 6, 10, 20, 30].includes(saved.maxRounds) &&
       ['classic', 'crossfire', 'socratic'].includes(saved.format) && typeof saved.demo === 'boolean' &&
       ['pro', 'con'].every(side => Array.isArray(saved.teams?.[side]) && saved.teams[side].length === 3 && saved.teams[side].every((s: Speaker) => typeof s.modelId === 'string' && typeof s.providerId === 'string'))) {
-      const judge = saved.judge && typeof saved.judge.enabled === 'boolean' && typeof saved.judge.providerId === 'string' && typeof saved.judge.modelId === 'string' && typeof saved.judge.appeals === 'boolean' ? { ...saved.judge, timing: saved.judge.timing === 'coach' ? 'coach' : 'final' } : DEFAULT_CONFIG.judge;
+      const judge = saved.judge && typeof saved.judge.enabled === 'boolean' && typeof saved.judge.providerId === 'string' && typeof saved.judge.modelId === 'string' && typeof saved.judge.appeals === 'boolean' ? { ...saved.judge, timing: saved.judge.timing === 'coach' ? 'coach' : 'final' } : { ...DEFAULT_CONFIG.judge };
+      if (judge.providerId === 'demo') judge.modelId = '裁判';
       const matchSeconds = [60, 180, 300, 600, 900, 1800].includes(saved.matchSeconds) ? saved.matchSeconds : 300;
       return { ...saved, styles: effectiveStyles(saved), pace: saved.pace === 'timed' ? 'timed' : 'length', thinkingSeconds: [60,120,180,300,600].includes(saved.thinkingSeconds) ? saved.thinkingSeconds : 180, speechChars: [200,400,600,1000].includes(saved.speechChars) ? saved.speechChars : 400, judge, matchSeconds, prepSeconds: [0, 30, 60, 120, 180].includes(saved.prepSeconds) ? saved.prepSeconds : 30, language: ['natural', 'witty', 'rigorous'].includes(saved.language) ? saved.language : 'natural', maxRounds: saved.pace === 'timed' ? saved.maxRounds : saved.maxRounds || 3, teams: {
         pro: saved.teams.pro.map((s: Speaker, member: number) => ({ ...s, side: 'pro', member, name: speakerName('pro', member), modelId: saved.demo ? '演示模型 A' : s.modelId })),
@@ -45,7 +46,22 @@ export function loadConfig(): DebateConfig {
 export function loadMatches(): Match[] {
   try {
     const data = JSON.parse(localStorage.getItem('zhengming-history') || '[]');
-    if (Array.isArray(data)) return data.filter(m => m && typeof m.id === 'string' && typeof m.config?.topic === 'string' && Array.isArray(m.messages) && m.result && ['concession', 'forfeit', 'limit', 'judge', 'stopped', 'error'].includes(m.result.reason)).slice(0, 20).map(m => ({ ...m, preparation: m.preparation || [], config: { ...m.config, prepSeconds: m.config.prepSeconds || 0, language: m.config.language || 'natural', matchSeconds: m.config.matchSeconds || 300, judge: m.config.judge ? { ...m.config.judge, timing: m.config.judge.timing || 'coach' } : DEFAULT_CONFIG.judge } }));
+    if (Array.isArray(data)) return data.filter(m => m && typeof m.id === 'string' && typeof m.config?.topic === 'string' && Array.isArray(m.messages) && m.result && ['concession', 'forfeit', 'limit', 'judge', 'stopped', 'error'].includes(m.result.reason)).slice(0, 20).map(m => {
+      const judge = m.config.judge ? { ...m.config.judge, timing: m.config.judge.timing || 'coach' } : { ...DEFAULT_CONFIG.judge };
+      if (judge.providerId === 'demo') judge.modelId = '裁判';
+      const messages = m.messages.map((message: Utterance) => message.side === 'judge' ? {
+        ...message,
+        name: '裁判',
+        model: m.config.demo ? '裁判' : message.model,
+      } : message);
+      return {
+        ...m,
+        messages,
+        result: { ...m.result, detail: normalizeJudgeTitle(m.result.detail) },
+        preparation: m.preparation || [],
+        config: { ...m.config, prepSeconds: m.config.prepSeconds || 0, language: m.config.language || 'natural', matchSeconds: m.config.matchSeconds || 300, judge },
+      };
+    });
   } catch { /* localStorage unavailable */ }
   return [];
 }
@@ -94,12 +110,12 @@ export function exportMatch(match: Match) {
     `- 赛制：${config.judge.timing === 'coach' ? '裁判指导赛（每轮点评）' : '极限攻防（常规结束后裁决）'}；${(config.rulesVersion || 0) >= 2 && config.judge.enabled ? '未决加时，完整三轮后按整场表现评分决胜' : '未分胜负持续加时'}，可手动结束。`,
     `- 语言风格：${styleLabels(config)}`,
     `- 来源：${config.demo ? '演示模式（预设脚本，非真实模型输出）' : '真实模型 API'}`,
-    `- 裁判：${config.judge.enabled ? `Astra 大人（${config.judge.modelId}） · ${config.judge.appeals ? '允许一次申诉' : '不接受申诉'}` : '无裁判'}`,
+    `- 裁判：${config.judge.enabled ? `裁判（${config.judge.modelId}） · ${config.judge.appeals ? '允许一次申诉' : '不接受申诉'}` : '无裁判'}`,
     `- 结果：${match.result.detail}`, '', '---', '',
     ...(match.preparation?.length ? ['# 赛前更衣室（双方模型各自只能读取本队内容）', '', ...match.preparation.flatMap(m => [`## 第 ${m.round} 次商议 · ${m.name}（${m.model}）`, '', m.text, '']), '---', '', '# 正式比赛', ''] : []),
     ...match.messages.flatMap(m => [`## 第 ${m.round} 轮 · ${m.name}${m.side === 'audience' ? '' : `（${m.model}）`}`, '', m.text, '', ...scoreMarkdown(m.scores), ...(m.forfeited ? ['> 本方明确弃守立场，按规则判负。', ''] : []), ...(m.timeLimit !== undefined ? [`> 本次最长等待：${m.timeLimit} 秒；正文上限 ${m.charLimit || config.speechChars || 400} 字。`, ''] : []), ...(m.finishReason === 'timeout' ? ['> 本次发言因等待超时结束。', ''] : []), ...(m.warning ? [`> ${m.warning}`, ''] : [])]),
   ].join('\n');
-  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const blob = new Blob([normalizeJudgeTitle(content)], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

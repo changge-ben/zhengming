@@ -34,7 +34,7 @@ test('thinking and visible character budgets are independent of round and match 
 });
 
 test('explicit opening acceptance survives a missing signal, while quotes and conflicts do not', () => {
-  for (const text of ['接受。原判正方胜是合理的，尽管这场胜利是有保留的。', '我方接受本次判决。不再申诉。', '**接受本次判决。** 我方仍坚持原立场，但承认本场表现不足。']) assert.equal(acceptsRuling(text), true, text);
+  for (const text of ['接受。原判正方胜是合理的，尽管这场胜利是有保留的。', '我方接受本次判决。不再申诉。', '**接受本次判决。** 我方仍坚持原立场，但承认本场表现不足。', '裁判，接受本次判决。', 'Astra 大人，我方接受本次判决。']) assert.equal(acceptsRuling(text), true, text);
   for (const text of ['对方说“接受”，但我方申诉。', '“接受。”是对方的要求。', '接受。可是我方仍申请复核。', '接受。如果对方补足证据。', '我不接受本次判决。', '接受对方的例子，不接受判决。', '接受。只是暂时接受，本方保留申诉权。', '我认可这个例子。', '接受。没有异议才怪。']) assert.equal(acceptsRuling(text), false, text);
 });
 

@@ -4,7 +4,7 @@ export interface Decision { text: string; verdict?: 'pro' | 'con' | 'draw' | 'co
 /** Only for a completed appeal turn: an unambiguous opening acceptance of this ruling. */
 export function acceptsRuling(text: string): boolean {
   const plain = text.trim().replace(/\*\*/g, '');
-  const opening = /^(?:Astra\s*(?:大人|裁判)[，,：:]\s*)?(?:(?:我方|本方|我们|我)\s*)?(?:接受[。！!]|(?:接受|认可)(?:本次|本场|此次|这一|这个|该|原)?(?:判决|裁决|判词|结果|原判)(?:[。！!，,：:]|$))/i;
+  const opening = /^(?:(?:裁判|Astra\s*(?:大人|裁判))[，,：:]\s*)?(?:(?:我方|本方|我们|我)\s*)?(?:接受[。！!]|(?:接受|认可)(?:本次|本场|此次|这一|这个|该|原)?(?:判决|裁决|判词|结果|原判)(?:[。！!，,：:]|$))/i;
   if (!opening.test(plain)) return false;
   // Conflicting or conditional decisions must be confirmed by the model, never guessed.
   const rest = plain.replace(/(?:不再|不会|不|无需|放弃)(?:提出|申请|请求|进行|正式)?(?:申诉|上诉|复核)/g, '');
