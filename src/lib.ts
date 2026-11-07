@@ -109,7 +109,7 @@ export function scoreMarkdown(value: unknown): string[] {
 export function exportMatch(match: Match) {
   const { config } = match;
   const content = [
-    `# 争鸣 · ${config.topic}`, '',
+    `# 争鸣 · AI 辩论场\n\n## ${config.topic}`, '',
     `- 时间：${new Date(match.createdAt).toLocaleString('zh-CN')}`,
     `- 模式：${config.teamSize}v${config.teamSize} · ${FORMAT_LABEL[config.format]}`,
     `- 发言预算：${config.pace === 'timed' ? `传统计时，每轮 ${config.roundSeconds} 秒，常规 ${config.matchSeconds} 秒` : `正文每次最多 ${config.speechChars || 400} 字，单次最长等待 ${config.thinkingSeconds || 180} 秒，常规 ${config.maxRounds || 3} 轮`}`,

@@ -104,4 +104,4 @@ app.use((error: Error, _req: express.Request, res: express.Response, _next: expr
   res.status(400).json({ error: error instanceof SyntaxError ? '请求 JSON 无效。' : '请求处理失败。' });
 });
 await loadProviders();
-app.listen(port, '127.0.0.1', () => console.log(`争鸣 API 已启动：http://127.0.0.1:${port}`));
+app.listen(port, '127.0.0.1', () => console.log(`争鸣 · AI 辩论场 API 已启动：http://127.0.0.1:${port}`));

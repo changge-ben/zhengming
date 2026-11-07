@@ -16,7 +16,7 @@ if (-not (Test-ArenaReady)) {
     if ($LASTEXITCODE -ne 0) { throw '依赖安装失败，请检查网络后重试。' }
   }
   New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot '.local') -Force | Out-Null
-  Write-Host '正在启动争鸣…'
+  Write-Host '正在启动争鸣 · AI 辩论场…'
   Start-Process -FilePath "$env:SystemRoot\System32\cmd.exe" -ArgumentList '/d /c npm run dev' -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $PSScriptRoot '.local/dev.stdout.log') -RedirectStandardError (Join-Path $PSScriptRoot '.local/dev.stderr.log') | Out-Null
   $arenaDeadline = (Get-Date).AddSeconds(40)
   while (-not (Test-ArenaReady)) {
@@ -24,6 +24,6 @@ if (-not (Test-ArenaReady)) {
     Start-Sleep -Milliseconds 600
   }
 }
-Write-Host "争鸣已就绪：$arenaUrl"
+Write-Host "争鸣 · AI 辩论场已就绪：$arenaUrl"
 Write-Host '本地服务在后台运行，关闭此窗口或浏览器不影响服务。'
 if (-not $NoBrowser) { Start-Process $arenaUrl }
