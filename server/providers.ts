@@ -4,9 +4,10 @@ import { randomUUID } from 'node:crypto';
 import type { Provider } from '../shared/types.ts';
 import { canRememberKeys, protectKey, restoreKey } from './keyStorage.ts';
 import { normalizeBaseUrl, isLocalBaseUrl } from '../shared/providerConfig.ts';
+import { dataDirectory } from './paths.ts';
 
 export interface PrivateProvider extends Omit<Provider, 'hasKey' | 'hasSavedKey' | 'canRememberKey'> { apiKey: string; protectedKey?: string }
-const metadataPath = path.resolve('.local/providers.json');
+const metadataPath = path.join(dataDirectory, 'providers.json');
 
 const defaults: PrivateProvider[] = [
   { id: 'deepseek', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', protocol: 'openai', tokenParameter: 'max_tokens', models: ['deepseek-chat', 'deepseek-reasoner'], apiKey: process.env.DEEPSEEK_API_KEY || '' },

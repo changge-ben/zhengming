@@ -1,0 +1,36 @@
+name: Windows checks and portable build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.22.2'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run package:windows
+      - run: npm run test:portable
+      - uses: actions/upload-artifact@v7
+        with:
+          name: zhengming-windows-x64
+          path: |
+            .local/releases/*.zip
+            .local/releases/*.zip.sha256
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

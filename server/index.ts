@@ -9,6 +9,8 @@ import { createProvider, getProvider, listProviders, loadProviders, providerHead
 import { KeyStorageError } from './keyStorage.ts';
 import { briefSchema, evidenceSchema, stageSchema } from '../shared/caseSchema.ts';
 import { normalizeBaseUrl } from '../shared/providerConfig.ts';
+import { staticDirectory } from './paths.ts';
+import packageInfo from '../package.json';
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -52,7 +54,7 @@ const providerSchema = z.object({
   try { normalizeBaseUrl(provider.baseUrl, provider.protocol); }
   catch (error) { context.addIssue({ code: 'custom', path: ['baseUrl'], message: (error as Error).message }); }
 });
-app.get('/api/health', (_req, res) => res.json({ ok: true, name: '争鸣' }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, name: '争鸣', appId: 'zhengming-debate-arena', version: packageInfo.version, pid: process.pid, mode: process.env.ZHENGMING_MODE === 'portable' ? 'portable' : 'source' }));
 app.get('/api/providers', (_req, res) => res.json({ providers: listProviders() }));
 app.post('/api/providers', async (req, res) => {
   const parsed = providerSchema.safeParse(req.body);
@@ -100,12 +102,16 @@ app.post('/api/turn', async (req, res) => {
   } finally { clearInterval(heartbeat); res.off('close', disconnect); res.end(); }
 });
 app.use('/api', (_req, res) => res.status(404).json({ error: '接口不存在。' }));
-if (existsSync(path.resolve('dist/index.html'))) {
-  app.use(express.static(path.resolve('dist')));
-  app.get('/{*path}', (_req, res) => res.sendFile(path.resolve('dist/index.html')));
+if (existsSync(path.join(staticDirectory, 'index.html'))) {
+  app.use(express.static(staticDirectory));
+  app.get('/{*path}', (_req, res) => res.sendFile(path.join(staticDirectory, 'index.html')));
 }
 app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   res.status(400).json({ error: error instanceof SyntaxError ? '请求 JSON 无效。' : '请求处理失败。' });
 });
 await loadProviders();
-app.listen(port, '127.0.0.1', () => console.log(`争鸣 · AI 辩论场 API 已启动：http://127.0.0.1:${port}`));
+const server = app.listen(port, '127.0.0.1', () => console.log(`争鸣 · AI 辩论场 API 已启动：http://127.0.0.1:${port}`));
+server.on('error', (error: NodeJS.ErrnoException) => {
+  console.error(error.code === 'EADDRINUSE' ? `端口 ${port} 已被占用，请先关闭旧服务或使用其他端口。` : '本地服务未能启动，请运行环境诊断。');
+  process.exitCode = 1;
+});

@@ -8,6 +8,12 @@
 
 ## 从 GitHub 下载
 
+[下载 Windows 便携测试版](https://github.com/changge-ben/zhengming/releases/download/v1.1.0-beta.1/zhengming-1.1.0-beta.1-windows-x64.zip)
+
+普通 Windows 用户可下载上面的便携 ZIP，完整解压后双击 **启动争鸣.cmd**。便携版自带运行环境，首次使用可直接体验脚本演示。另附 **停止争鸣.cmd** 与 **环境诊断.cmd**。模型配置保存在本机固定数据目录，更新时解压到新文件夹并使用原浏览器与地址。详细步骤见[便携版使用与发布说明](docs/windows-release.md)。
+
+### 源码方式
+
 [下载源码 ZIP](https://github.com/changge-ben/zhengming/archive/refs/heads/main.zip)
 
 在仓库页面点击 **Code → Download ZIP**，下载后先完整解压。Windows 用户安装 **Node.js 22.12 或更新版本**后，双击解压文件夹内的 **启动争鸣.cmd**。首次启动需要联网安装依赖，服务就绪后自动打开浏览器。
@@ -45,6 +51,8 @@ npm start
 ```
 
 构建后访问 [http://127.0.0.1:8787](http://127.0.0.1:8787/)。本项目默认仅监听本机，适合个人使用；没有实现面向公网的账户、权限与计费系统。
+
+Windows 维护者可运行 `npm run package:windows` 构建便携包，再运行 `npm run test:portable` 检查解压、启动、停止、配置恢复与异常提示。GitHub Actions 会在每次提交及拉取请求时检查代码并构建测试包。
 
 ## 已实现
 
