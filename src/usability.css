@@ -42,6 +42,34 @@
   line-height: 1.9;
   margin: -4px 0 22px;
 }
+.topic-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 0 0 15px;
+  color: #b4c3c3;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.topic-count,
+.topic-save-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.topic-count {
+  font-variant-numeric: tabular-nums;
+}
+.topic-count strong {
+  color: #e4eae5;
+  font-weight: 500;
+}
+.topic-save-note svg {
+  color: #cdb58d;
+  flex-shrink: 0;
+}
 .provider-fields {
   min-width: 0;
   border: 0;
