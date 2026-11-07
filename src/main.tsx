@@ -6,6 +6,7 @@ import './judge.css';
 import './workspace.css';
 import './atelier.css';
 import './protocol.css';
+import './usability.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode><App /></React.StrictMode>,

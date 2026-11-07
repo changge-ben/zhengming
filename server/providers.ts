@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { Provider } from '../shared/types.ts';
 import { canRememberKeys, protectKey, restoreKey } from './keyStorage.ts';
+import { normalizeBaseUrl, isLocalBaseUrl } from '../shared/providerConfig.ts';
 
 export interface PrivateProvider extends Omit<Provider, 'hasKey' | 'hasSavedKey' | 'canRememberKey'> { apiKey: string; protectedKey?: string }
 const metadataPath = path.resolve('.local/providers.json');
@@ -60,7 +61,7 @@ export async function createProvider(patch: ProviderPatch) {
   return serialize(async () => {
     const { apiKey, clearKey, rememberKey, ...metadata } = patch;
     const secret = clearKey ? '' : apiKey?.trim() || '';
-    const provider: PrivateProvider = { ...metadata, id: `custom-${randomUUID()}`, apiKey: secret, ...(rememberKey && secret ? { protectedKey: await protectKey(secret) } : {}) };
+    const provider: PrivateProvider = { ...metadata, baseUrl: normalizeBaseUrl(metadata.baseUrl, metadata.protocol), id: `custom-${randomUUID()}`, apiKey: secret, ...(rememberKey && secret ? { protectedKey: await protectKey(secret) } : {}) };
     await persist([...registry.values(), provider]);
     registry.set(provider.id, provider);
     return provider.id;
@@ -72,7 +73,7 @@ export async function updateProvider(id: string, patch: ProviderPatch) {
   const existing = registry.get(id);
   if (!existing) throw new Error('服务商不存在');
   const { clearKey, apiKey, rememberKey, ...metadata } = patch;
-  const candidate = { ...existing, ...metadata, apiKey: clearKey ? '' : apiKey?.trim() || existing.apiKey };
+  const candidate = { ...existing, ...metadata, baseUrl: normalizeBaseUrl(metadata.baseUrl, metadata.protocol), apiKey: clearKey ? '' : apiKey?.trim() || existing.apiKey };
   const remember = rememberKey ?? Boolean(existing.protectedKey);
   if (clearKey || !remember) delete candidate.protectedKey;
   else if (candidate.apiKey && (apiKey?.trim() || !candidate.protectedKey)) candidate.protectedKey = await protectKey(candidate.apiKey);
@@ -93,7 +94,7 @@ export function providerHeaders(provider: PrivateProvider): Record<string, strin
 }
 
 export function isLocalProvider(p: PrivateProvider) {
-  return ['localhost', '127.0.0.1', '[::1]'].includes(new URL(p.baseUrl).hostname);
+  return isLocalBaseUrl(p.baseUrl);
 }
 
 export function redact(text: string): string {

@@ -33,9 +33,10 @@ test('HTTP API validates input, blocks foreign origins and persists only opted-i
     const malformed = await fetch(`${url}/api/turn`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'not-json' });
     assert.equal(malformed.status, 400);
     const fakeSecret = 'fixture-secret-never-save-to-disk';
-    const saved = await fetch(`${url}/api/providers/custom`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '本地测试服务', baseUrl: 'http://localhost:11434/v1', protocol: 'openai', tokenParameter: 'max_tokens', models: ['fixture-model'], apiKey: fakeSecret }) });
+    const saved = await fetch(`${url}/api/providers/custom`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '本地测试服务', baseUrl: 'http://localhost:11434/v1/chat/completions', protocol: 'openai', tokenParameter: 'max_tokens', models: ['fixture-model'], apiKey: fakeSecret }) });
     assert.equal(saved.status, 200);
     const savedText = await saved.text(); assert.ok(!savedText.includes(fakeSecret));
+    assert.equal(JSON.parse(savedText).providers.find((p: { id: string }) => p.id === 'custom').baseUrl, 'http://localhost:11434/v1');
     const disk = await readFile(path.join(dir, '.local/providers.json'), 'utf8');
     assert.ok(!disk.includes(fakeSecret)); assert.ok(!disk.includes('apiKey'));
     const updated = await (await fetch(`${url}/api/providers`)).json() as { providers: { id: string; hasKey: boolean }[] };

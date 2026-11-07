@@ -5,6 +5,7 @@ import { effectiveStyles, styleLabels } from '../shared/styles';
 import { scoreDimensions, readScorecard, scoreTotal } from '../shared/adjudication';
 import { briefSchema, evidenceSchema } from '../shared/caseSchema';
 import { EMPTY_BRIEF, EVIDENCE_LABEL, MOTION_LABEL, STAGE_LABEL, messageRef, regulationRounds } from '../shared/protocol';
+import { isLocalBaseUrl } from '../shared/providerConfig';
 
 export const TOPICS = [
   'AI 的发展，最终会让人类更自由吗？',
@@ -52,19 +53,21 @@ export function loadConfig(): DebateConfig {
 export function loadMatches(): Match[] {
   try {
     const data = JSON.parse(localStorage.getItem('zhengming-history') || '[]');
-    if (Array.isArray(data)) return data.filter(m => m && typeof m.id === 'string' && typeof m.config?.topic === 'string' && Array.isArray(m.messages) && m.result && ['concession', 'forfeit', 'limit', 'judge', 'stopped', 'error'].includes(m.result.reason)).slice(0, 20).map(m => {
+    if (Array.isArray(data)) return data.filter(m => m && typeof m.id === 'string' && typeof m.config?.topic === 'string' && Array.isArray(m.messages) && [1, 2, 3].includes(m.config.teamSize) && ['pro', 'con'].every(side => Array.isArray(m.config.teams?.[side]) && m.config.teams[side].length >= m.config.teamSize && m.config.teams[side].every((speaker: Speaker) => speaker && typeof speaker.modelId === 'string' && typeof speaker.providerId === 'string')) && Number.isFinite(m.createdAt) && m.result && ['concession', 'forfeit', 'limit', 'judge', 'stopped', 'error'].includes(m.result.reason)).slice(0, 20).map(m => {
       const judge = m.config.judge ? { ...m.config.judge, timing: m.config.judge.timing || 'coach' } : { ...DEFAULT_CONFIG.judge };
       if (judge.providerId === 'demo') judge.modelId = '裁判';
-      const messages = m.messages.map((message: Utterance) => message.side === 'judge' ? {
-        ...message,
-        name: '裁判',
-        model: m.config.demo ? '裁判' : message.model,
-      } : message);
+      const messages = m.messages.map((message: Utterance, index: number): Utterance => {
+        if (!message || typeof message.id !== 'string' || typeof message.text !== 'string' || !['pro', 'con', 'judge', 'audience'].includes(message.side) || !Number.isFinite(message.round) || !Number.isFinite(message.member)) {
+          // Preserve the position so later [M#] citations still identify the same turn.
+          return { id: typeof message?.id === 'string' ? message.id : `damaged-${index}`, side: 'audience', member: 0, name: '档案恢复', model: '', round: 0, text: '（这条历史发言已损坏，原编号保留，无法恢复正文。）', timestamp: 0, finishReason: 'error' };
+        }
+        return message.side === 'judge' ? { ...message, name: '裁判', model: m.config.demo ? '裁判' : message.model } : message;
+      });
       return {
         ...m,
         messages,
-        result: { ...m.result, detail: normalizeJudgeTitle(m.result.detail) },
-        preparation: m.preparation || [],
+        result: { ...m.result, detail: normalizeJudgeTitle(typeof m.result.detail === 'string' ? m.result.detail : '历史比赛记录') },
+        preparation: Array.isArray(m.preparation) ? m.preparation.filter((message: Utterance) => message && typeof message.text === 'string') : [],
         config: { ...m.config, prepSeconds: m.config.prepSeconds || 0, language: m.config.language || 'natural', matchSeconds: m.config.matchSeconds || 300, judge },
       };
     });
@@ -89,15 +92,21 @@ export function clockTime(seconds: number) {
 
 export async function api<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response;
-  try { response = await fetch(url, init); }
-  catch { throw new Error('无法连接本地服务。请确认 npm run dev 仍在运行。'); }
-  const data = await response.json().catch(() => ({ error: '服务未返回有效 JSON，请检查本地 API 是否启动。' }));
-  if (!response.ok) throw new Error(data.error || `请求失败：${response.status}`);
-  return data as T;
+  const timeout = AbortSignal.timeout(20000);
+  try {
+    response = await fetch(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
+    const data = await response.json().catch(() => { throw new Error('本地服务返回了无效响应，请重新连接后重试。'); });
+    if (!response.ok) throw new Error(data.error || `请求失败：${response.status}`);
+    return data as T;
+  } catch (error) {
+    if (timeout.aborted) throw new Error('本次请求等待超过 20 秒，请检查本地服务后重试。');
+    if (error instanceof TypeError) throw new Error('无法连接本地服务。请双击「启动争鸣.cmd」，然后点击重新连接。');
+    throw error;
+  }
 }
 
 export function modelOptions(providers: Provider[]) {
-  return providers.flatMap(p => p.models.map(modelId => ({ providerId: p.id, modelId, label: `${p.name} · ${modelId}`, available: p.hasKey || /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::|\/|$)/.test(p.baseUrl) })));
+  return providers.flatMap(p => p.models.map(modelId => ({ providerId: p.id, modelId, label: `${p.name} · ${modelId}`, available: p.hasKey || isLocalBaseUrl(p.baseUrl) })));
 }
 
 export function scoreMarkdown(value: unknown): string[] {

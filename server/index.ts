@@ -8,6 +8,7 @@ import { generateTurn } from './debate.ts';
 import { createProvider, getProvider, listProviders, loadProviders, providerHeaders, redact, updateProvider } from './providers.ts';
 import { KeyStorageError } from './keyStorage.ts';
 import { briefSchema, evidenceSchema, stageSchema } from '../shared/caseSchema.ts';
+import { normalizeBaseUrl } from '../shared/providerConfig.ts';
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -47,6 +48,9 @@ const providerSchema = z.object({
   baseUrl: z.url().refine(value => ['http:', 'https:'].includes(new URL(value).protocol) && !new URL(value).username && !new URL(value).password, '请输入不含用户名和密码的 HTTP(S) Base URL'),
   protocol: z.enum(['openai', 'anthropic']), tokenParameter: z.enum(['max_tokens', 'max_completion_tokens', 'none']),
   models: z.array(z.string().trim().min(1).max(200)).max(100), apiKey: z.string().max(2000).optional(), clearKey: z.boolean().optional(), rememberKey: z.boolean().optional(),
+}).superRefine((provider, context) => {
+  try { normalizeBaseUrl(provider.baseUrl, provider.protocol); }
+  catch (error) { context.addIssue({ code: 'custom', path: ['baseUrl'], message: (error as Error).message }); }
 });
 app.get('/api/health', (_req, res) => res.json({ ok: true, name: '争鸣' }));
 app.get('/api/providers', (_req, res) => res.json({ providers: listProviders() }));

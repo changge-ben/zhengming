@@ -1,0 +1,168 @@
+.getting-started {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 23px 44px 23px 24px;
+  margin-bottom: 24px;
+  border: 1px solid #cdb58d35;
+  background: #cdb58d08;
+  border-radius: 8px;
+}
+.getting-started > div:first-child {
+  flex: 1;
+}
+.getting-started h2 {
+  margin: 12px 0 8px;
+  font-size: 22px;
+  font-weight: 500;
+}
+.getting-started p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.9;
+  max-width: 610px;
+}
+.getting-started-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.getting-started-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+}
+.run-estimate {
+  color: #aab7b6;
+  font-size: 13px;
+  line-height: 1.9;
+  margin: -4px 0 22px;
+}
+.provider-fields {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.provider-advanced {
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+  padding-top: 16px;
+}
+.provider-advanced summary {
+  color: #aebdbc;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 17px;
+}
+.unsaved-note {
+  color: #d3bf9e;
+  font-size: 13px;
+  padding: 10px 12px;
+  background: #cdb58d0b;
+  border-radius: 4px;
+  line-height: 1.8;
+}
+.unsaved-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin: 0 24px 20px;
+  padding: 17px;
+  border: 1px solid #cdb58d60;
+  background: #25251f;
+  border-radius: 6px;
+}
+.unsaved-confirm > div {
+  flex: 1;
+  min-width: 180px;
+}
+.unsaved-confirm strong {
+  font-size: 15px;
+  font-weight: 500;
+  color: #dbc9ad;
+}
+.unsaved-confirm p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #b5c0bc;
+  line-height: 1.8;
+}
+.recovery-banner,
+.archive-undo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 21px;
+  border: 1px solid #8fb8bd40;
+  border-radius: 7px;
+  background: #8fb8bd09;
+  margin-bottom: 22px;
+}
+.recovery-banner > div {
+  flex: 1;
+}
+.recovery-banner strong {
+  font-weight: 500;
+  font-size: 15px;
+  color: #c6d9d6;
+}
+.recovery-banner p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 8px 0 0;
+  line-height: 1.8;
+}
+.archive-undo {
+  color: #c4cecb;
+  font-size: 14px;
+}
+.archive-undo > span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.return-latest {
+  margin-left: auto;
+  font-size: 12px;
+}
+.quiet-empty > .text-action {
+  margin: 12px auto 0;
+}
+@media (max-width: 650px) {
+  .getting-started {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 22px;
+  }
+  .getting-started-actions {
+    align-items: stretch;
+  }
+  .getting-started-actions .text-action {
+    justify-content: center;
+  }
+  .getting-started h2 {
+    font-size: 20px;
+  }
+  .recovery-banner,
+  .archive-undo {
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 12px;
+  }
+  .recovery-banner > div {
+    flex-basis: calc(100% - 44px);
+  }
+  .recovery-banner > .icon-button {
+    order: -1;
+    margin-left: auto;
+  }
+  .run-estimate {
+    font-size: 12px;
+  }
+}

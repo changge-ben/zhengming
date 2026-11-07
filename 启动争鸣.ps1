@@ -10,9 +10,11 @@ function Test-ArenaReady {
 }
 if (-not (Test-ArenaReady)) {
   if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw '请先安装 Node.js 22.12 或更新版本。' }
+  $arenaNodeVersion = [version]((& node -p 'process.versions.node').Trim())
+  if ($arenaNodeVersion -lt [version]'22.12.0') { throw "当前 Node.js 版本为 $arenaNodeVersion，请安装 Node.js 22.12 或更新版本后再启动。" }
   if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'node_modules'))) {
     Write-Host '首次启动，正在安装依赖…'
-    & npm.cmd install
+    & npm.cmd ci --include=dev
     if ($LASTEXITCODE -ne 0) { throw '依赖安装失败，请检查网络后重试。' }
   }
   New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot '.local') -Force | Out-Null

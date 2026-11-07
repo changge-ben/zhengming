@@ -3,6 +3,7 @@ import { streamTurn } from './turnStream';
 import { roundTurnSeconds, thinkingLimit, visibleCharLimit, winningSide } from '../shared/budget';
 import { SCORED_OVERTIME_ROUNDS, readScorecard, scoreWinner } from '../shared/adjudication';
 import { acceptsRuling } from '../shared/decision';
+import { saveCheckpoint } from './recovery';
 import { planRound, regulationRounds, type DebateStage } from '../shared/protocol';
 import { SIDE_LABEL, type Actor, type DebateConfig, type Match, type MatchResult, type MatchStatus, type TurnKind, type Utterance, type Verdict } from '../shared/types';
 
@@ -38,16 +39,32 @@ export function useDebate(onSave: (match: Match) => void) {
   const [viewedMatch, setViewedMatch] = useState<Match | null>(null);
   const [overtime, setOvertime] = useState(false);
   const [notice, setNotice] = useState('');
+  const [recoveryWarning, setRecoveryWarning] = useState('');
   const ctxRef = useRef<Context | null>(null);
   const saveRef = useRef(onSave);
   saveRef.current = onSave;
 
   useEffect(() => {
+    let savedAt = 0;
+    function persist(force = false) {
+      const ctx = ctxRef.current;
+      if (!ctx || ctx.finished || !force && Date.now() - savedAt < 2000) return;
+      savedAt = Date.now();
+      const pending = ctx.pending?.text ? [{ ...ctx.pending, finishReason: 'stopped' }] : [];
+      const preparing = Object.values(ctx.preparing).filter(m => m.text).map(m => ({ ...m, finishReason: 'stopped' }));
+      const success = saveCheckpoint({ id: ctx.id, config: ctx.config, messages: [...ctx.history, ...pending], preparation: [...ctx.preparation, ...preparing], createdAt: ctx.createdAt, rounds: ctx.round, result: { reason: 'stopped', winner: null, detail: '进行中的比赛快照' } });
+      if (!success) setRecoveryWarning('浏览器暂不能保存刷新保护快照，离开页面前请先结束比赛并导出。');
+    }
+    const leaving = () => persist(true);
+    const hidden = () => { if (document.visibilityState === 'hidden') persist(true); };
+    window.addEventListener('pagehide', leaving);
+    document.addEventListener('visibilitychange', hidden);
     const timer = window.setInterval(() => {
       const ctx = ctxRef.current;
       if (ctx && !ctx.finished && !ctx.actuallyPaused) setRemaining(Math.max(0, Math.ceil(((ctx.phase === 'debate' && ctx.config.pace === 'timed' ? ctx.matchDeadline : ctx.deadline) - Date.now()) / 1000)));
+      persist();
     }, 200);
-    return () => { clearInterval(timer); ctxRef.current?.controller.abort(); };
+    return () => { leaving(); window.removeEventListener('pagehide', leaving); document.removeEventListener('visibilitychange', hidden); clearInterval(timer); ctxRef.current?.controller.abort(); };
   }, []);
 
   const finish = (ctx: Context, next: MatchResult, nextStatus: MatchStatus) => {
@@ -63,6 +80,7 @@ export function useDebate(onSave: (match: Match) => void) {
     setStatus(nextStatus);
     setRemaining(0);
     setViewedMatch(match);
+    saveCheckpoint(match, true);
     saveRef.current(match);
   };
 
@@ -72,7 +90,7 @@ export function useDebate(onSave: (match: Match) => void) {
     ctxRef.current?.controller.abort();
     const ctx: Context = { id: crypto.randomUUID(), config: structuredClone(config), history: [], preparation: [], preparing: {}, controller: new AbortController(), pauseRequested: false, actuallyPaused: false, round: 0, deadline: Date.now() + (config.prepSeconds || config.roundSeconds) * 1000, matchDeadline: Date.now() + config.matchSeconds * 1000, phase: config.prepSeconds ? 'preparing' : 'debate', createdAt: Date.now(), audience: [], pending: null, finished: false };
     ctxRef.current = ctx;
-    setOvertime(false); setNotice('');
+    setOvertime(false); setNotice(''); setRecoveryWarning('');
     setLiveConfig(ctx.config); setViewedMatch(null); setMessages([]); setPreparation([]); setResult(null); setRound(0); setRemaining(config.prepSeconds || config.matchSeconds); setStatus('running');
     setPhase(ctx.phase);
     const publishPreparation = () => setPreparation([...ctx.preparation, ...Object.values(ctx.preparing)].sort((a, b) => a.timestamp - b.timestamp));
@@ -298,7 +316,7 @@ export function useDebate(onSave: (match: Match) => void) {
     setMessages([]); setPreparation([]); setActive(null); setOvertime(false); setNotice(''); setPhase('debate'); setRound(0); setRemaining(0); setResult(null); setLiveConfig(null); setViewedMatch(null); setStatus('idle');
   }
 
-  return { status, messages, preparation, active, phase, overtime, notice, round, remaining, result, liveConfig, viewedMatch, start, pause, stop, ask, view, reset };
+  return { status, messages, preparation, active, phase, overtime, notice, recoveryWarning, round, remaining, result, liveConfig, viewedMatch, start, pause, stop, ask, view, reset };
 }
 
 export type DebateController = ReturnType<typeof useDebate>;
