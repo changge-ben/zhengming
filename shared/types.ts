@@ -2,6 +2,7 @@ import { readDecision } from './decision.ts';
 import type { Scorecard } from './adjudication.ts';
 import type { ExpressionStyle } from './styles.ts';
 import type { DebateBrief, EvidenceCard, DebateStage } from './protocol.ts';
+import type { Locale } from './locale.ts';
 export type Side = 'pro' | 'con';
 export type Format = 'classic' | 'crossfire' | 'socratic';
 export type MatchStatus = 'idle' | 'running' | 'pausing' | 'paused' | 'completed' | 'stopped' | 'error';
@@ -27,6 +28,7 @@ export interface Speaker {
 }
 
 export interface DebateConfig {
+  locale?: Locale;
   protocol?: 'arena' | 'structured';
   brief?: DebateBrief;
   evidence?: EvidenceCard[];

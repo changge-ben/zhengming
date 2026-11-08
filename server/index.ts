@@ -33,6 +33,7 @@ app.use(express.json({ limit: '8mb' }));
 const speakerSchema = z.object({ side: z.enum(['pro', 'con']), member: z.number().int().min(0).max(2), providerId: z.string().max(100), modelId: z.string().min(1).max(200), name: z.string().max(80) });
 const actorSchema = speakerSchema.extend({ side: z.enum(['pro', 'con', 'judge']) });
 const configSchema = z.object({
+  locale: z.enum(['zh-CN', 'en']).optional(),
   protocol: z.enum(['arena', 'structured']).optional(), brief: briefSchema.optional(), evidence: evidenceSchema.optional(),
   rulesVersion: z.number().int().optional(), styles: z.array(z.enum(EXPRESSION_STYLES.map(s => s.id))).min(1).max(6).optional(),
   pace: z.enum(['length', 'timed']).optional(), thinkingSeconds: z.number().int().min(60).max(600).optional(), speechChars: z.number().int().min(100).max(2000).optional(),

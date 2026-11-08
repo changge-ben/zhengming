@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_CONFIG } from '../src/lib.ts';
 
 test('HTTP API validates input, blocks foreign origins and persists only opted-in encrypted keys', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'zhengming-api-test-'));
@@ -32,6 +33,12 @@ test('HTTP API validates input, blocks foreign origins and persists only opted-i
     assert.equal(forbidden.status, 403);
     const malformed = await fetch(`${url}/api/turn`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'not-json' });
     assert.equal(malformed.status, 400);
+    const englishConfig = { ...structuredClone(DEFAULT_CONFIG), locale: 'en', demo: true };
+    const english = await fetch(`${url}/api/turn`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config: englishConfig, speaker: englishConfig.teams.pro[0], round: 1, timeLimit: 10, history: [], kind: 'speech' }) });
+    assert.equal(english.status, 200);
+    const englishStream = await english.text();
+    assert.match(englishStream, /A useful tool can widen your choices/);
+    assert.match(englishStream, /"type":"done"/);
     const fakeSecret = 'fixture-secret-never-save-to-disk';
     const saved = await fetch(`${url}/api/providers/custom`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: '本地测试服务', baseUrl: 'http://localhost:11434/v1/chat/completions', protocol: 'openai', tokenParameter: 'max_tokens', models: ['fixture-model'], apiKey: fakeSecret }) });
     assert.equal(saved.status, 200);

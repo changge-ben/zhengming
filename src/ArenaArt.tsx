@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useId, useRef, useState } from 'react';
 
 /** An abstract conversation, drawn entirely in SVG. No model activity is implied. */
@@ -54,6 +55,6 @@ export default function ArenaArt() {
       <text x="169" y="272" fill="#bda680" fontSize="10" textAnchor="middle" letterSpacing="5">THESIS</text>
       <text x="351" y="272" fill="#8aadaf" fontSize="10" textAnchor="middle" letterSpacing="5">ANTITHESIS</text>
     </svg>
-    <div className="sculpture-footer"><span>分歧，是思考的起点。</span><button type="button" aria-label={paused ? '播放装饰动画' : '暂停装饰动画'} aria-pressed={paused} onClick={()=>{resetPosition();setPaused(p=>!p);}}><span aria-hidden="true">{paused ? '▷' : 'Ⅱ'}</span>{paused ? '播放动效' : '暂停动效'}</button></div>
+    <div className="sculpture-footer"><span>{t("分歧，是思考的起点。")}</span><button type="button" aria-label={paused ? t('播放装饰动画') : t('暂停装饰动画')} aria-pressed={paused} onClick={()=>{resetPosition();setPaused(p=>!p);}}><span aria-hidden="true">{paused ? '▷' : 'Ⅱ'}</span>{paused ? t('播放动效') : t('暂停动效')}</button></div>
   </div>;
 }

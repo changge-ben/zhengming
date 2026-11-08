@@ -1,10 +1,10 @@
 # Windows 便携版与发布说明
 
-本次发布版本为 **1.1.0-beta.1**。这是面向 Windows x64 用户的早期测试版，适合邀请首批用户体验并收集反馈。
+本次发布版本为 **1.1.0-beta.2**。支持中英文切换、英文演示与英文新比赛，语言选择在浏览器保存。这是面向 Windows x64 用户的早期测试版，适合邀请首批用户体验并收集反馈。
 
 ## 用户使用
 
-1. 从 [GitHub 版本页面](https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.1)下载 `zhengming-1.1.0-beta.1-windows-x64.zip`。
+1. 从 [GitHub 版本页面](https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.2)下载 `zhengming-1.1.0-beta.2-windows-x64.zip`。
 2. 完整解压到固定目录。目录名称可以包含中文与空格。
 3. 双击「启动争鸣.cmd」，浏览器会打开本机网站。
 4. 点击「先看一场演示」体验；真实模型在「模型接入」中设置。

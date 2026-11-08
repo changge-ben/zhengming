@@ -3,12 +3,20 @@
 1. 将 ZIP 完整解压到一个固定文件夹，建议放在桌面或文档目录。
 2. 双击「启动争鸣.cmd」，浏览器会自动打开。
 3. 首次可以直接点「先看一场演示」。真实模型在「模型接入」中配置。
+   右上角 EN / 中文 可切换界面语言，新比赛使用开赛时选定的语言。
 4. 使用结束后，可在网页中结束比赛，再双击「停止争鸣.cmd」。
 5. 打不开时双击「环境诊断.cmd」，查看文件校验和服务状态。
 
 便携版内置 Node.js 运行时，使用时无需安装 Node、Git 或下载 npm 依赖。
 适用于 64 位 Windows 10 / 11。真实模型需要网络与自己的 API Key。
 本机访问地址固定为 http://127.0.0.1:5173/。
+
+English
+Extract the ZIP and double-click 启动争鸣.cmd to open the app.
+Select EN in the top bar, then Watch a demo. No API key is needed for demos.
+Use Model connections for your provider, model IDs and API key.
+New matches use the language selected at launch. Existing speeches keep their text.
+Stop the match before running 停止争鸣.cmd. Use 环境诊断.cmd for diagnostics.
 
 数据与更新
 模型配置默认保存在 %LOCALAPPDATA%\Zhengming。

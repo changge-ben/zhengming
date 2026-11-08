@@ -4,6 +4,11 @@ export interface Decision { text: string; verdict?: 'pro' | 'con' | 'draw' | 'co
 /** Only for a completed appeal turn: an unambiguous opening acceptance of this ruling. */
 export function acceptsRuling(text: string): boolean {
   const plain = text.trim().replace(/\*\*/g, '');
+  const englishOpening = /^(?:judge[,.:]\s*)?(?:(?:i|we)\s+accept|our team\s+accepts)\s+(?:(?:this|the|your|current|final)\s+)?(?:ruling|decision|verdict)(?:[.!,:]|$)/i;
+  if (englishOpening.test(plain)) {
+    const rest = plain.replace(/\b(?:will not|won't|do not|don't)\s+(?:wish to\s+|intend to\s+)?appeal\b|\bno\s+(?:further\s+)?appeal\b/gi, '');
+    return !/\b(?:if|unless|provided|conditional|however|but|appeal|review|reject|disagree|object|challenge)\b|\b(?:do not|don't|cannot|can't)\s+accept\b/i.test(rest);
+  }
   const opening = /^(?:(?:裁判|Astra\s*(?:大人|裁判))[，,：:]\s*)?(?:(?:我方|本方|我们|我)\s*)?(?:接受[。！!]|(?:接受|认可)(?:本次|本场|此次|这一|这个|该|原)?(?:判决|裁决|判词|结果|原判)(?:[。！!，,：:]|$))/i;
   if (!opening.test(plain)) return false;
   // Conflicting or conditional decisions must be confirmed by the model, never guessed.

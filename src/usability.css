@@ -9,6 +9,53 @@
   background: #cdb58d08;
   border-radius: 8px;
 }
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-shrink: 0;
+  min-height: 35px;
+  padding: 7px 11px;
+  border: 1px solid #596766;
+  border-radius: 6px;
+  background: #192123;
+  color: #d8e2df;
+  font-size: 13px;
+  line-height: 1;
+}
+.language-switch:hover { border-color: #cdb58d; color: #e1cba8; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+html:lang(en) .brand strong { font-size: 19px; letter-spacing: 0; }
+html:lang(en) .brand small { letter-spacing: 1px; }
+html:lang(en) .sidebar-section-label { font-size: 9px; letter-spacing: .4px; }
+html:lang(en) .sidebar-version { line-height: 1.6; gap: 10px; }
+html:lang(en) .home-intro h1 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(36px, 3.5vw, 53px); letter-spacing: -1.4px; }
+html:lang(en) .hero-edition { flex-wrap: wrap; gap: 12px 20px; letter-spacing: 0; }
+html:lang(en) .topic-launch textarea { font-family: inherit; font-size: 23px; }
+html:lang(en) .setup-card { min-height: 150px; }
+html:lang(en) .setup-card > strong { font-size: 18px; }
+html:lang(en) .setup-card:nth-child(4) > strong { font-size: 16px; }
+html:lang(en) .setup-card-top { gap: 7px; }
+html:lang(en) .topic-meta { align-items: flex-start; }
+html:lang(en) .topic-save-note { text-align: right; }
+html:lang(en) .module-note,
+html:lang(en) .help-card p { line-height: 1.8; }
+html:lang(en) .choice-stack .choice { text-align: left; }
+html:lang(en) .speech-card h3 > span { overflow-wrap: anywhere; }
+@media (max-width: 650px) {
+  .language-switch { min-height: 32px; padding: 6px 8px; gap: 5px; }
+  html:lang(en) .redesigned .topbar { padding: 0 12px; }
+  html:lang(en) .breadcrumb { min-width: 0; white-space: nowrap; overflow: hidden; }
+  html:lang(en) .breadcrumb strong { overflow: hidden; text-overflow: ellipsis; }
+  html:lang(en) .server-status { display: none; }
+  html:lang(en) .home-intro h1 { font-size: 36px; letter-spacing: -.8px; }
+  html:lang(en) .topic-launch textarea { font-size: 19px; }
+  html:lang(en) .topic-save-note { text-align: left; }
+  html:lang(en) .setup-card { min-height: 155px; }
+  html:lang(en) .setup-card > strong { font-size: 16px; }
+  html:lang(en) .hero-edition { font-size: 10px; gap: 10px; }
+}
 .getting-started > div:first-child {
   flex: 1;
 }

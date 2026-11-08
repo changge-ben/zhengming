@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { streamTurn } from './turnStream';
+import { translateMessage } from '../shared/messages';
 import { roundTurnSeconds, thinkingLimit, visibleCharLimit, winningSide } from '../shared/budget';
 import { SCORED_OVERTIME_ROUNDS, readScorecard, scoreWinner } from '../shared/adjudication';
 import { acceptsRuling } from '../shared/decision';
@@ -171,7 +172,7 @@ export function useDebate(onSave: (match: Match) => void) {
         if (ctx.controller.signal.aborted || ctxRef.current !== ctx) throw error;
         const detail = (error as Error).message;
         const pending = ctx.pending;
-        ctx.history.push(pending ? { ...pending, text: pending.text || '（本次裁判或申诉连接未完成。）', finishReason: 'error', warning: detail } : { id: crypto.randomUUID(), side: speaker.side, member: speaker.member, name: speaker.name, model: speaker.modelId, round: ctx.round, timestamp: Date.now(), kind, text: '（本次裁判环节未完成。）', finishReason: 'error', warning: detail, ...(extra.appealAttempt ? { appealAttempt: extra.appealAttempt } : {}) });
+        ctx.history.push(pending ? { ...pending, text: pending.text || translateMessage(ctx.config.locale || 'zh-CN', '（本次裁判或申诉连接未完成。）'), finishReason: 'error', warning: detail } : { id: crypto.randomUUID(), side: speaker.side, member: speaker.member, name: speaker.name, model: speaker.modelId, round: ctx.round, timestamp: Date.now(), kind, text: translateMessage(ctx.config.locale || 'zh-CN', '（本次裁判环节未完成。）'), finishReason: 'error', warning: detail, ...(extra.appealAttempt ? { appealAttempt: extra.appealAttempt } : {}) });
         ctx.pending = null; setActive(null); setMessages([...ctx.history]);
         setNotice(`裁判环节暂未完成：${detail} 不据此判胜负，继续加时。`);
         return null;

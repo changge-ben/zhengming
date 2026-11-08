@@ -1,3 +1,4 @@
+import { t, getLocale, dateLocale } from './i18n';
 import type { DebateConfig, Match, Provider, Speaker } from '../shared/types';
 import { FORMAT_LABEL, SIDE_LABEL, speakerName, normalizeJudgeTitle, type Utterance } from '../shared/types';
 import { scoreEntry, type ScoreEntry } from '../shared/statistics';
@@ -47,7 +48,7 @@ export function loadConfig(): DebateConfig {
       } };
     }
   } catch { /* invalid storage: use defaults */ }
-  return structuredClone(DEFAULT_CONFIG);
+  return { ...structuredClone(DEFAULT_CONFIG), topic: t(DEFAULT_CONFIG.topic) };
 }
 
 export function loadMatches(): Match[] {
@@ -95,51 +96,51 @@ export async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const timeout = AbortSignal.timeout(20000);
   try {
     response = await fetch(url, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout });
-    const data = await response.json().catch(() => { throw new Error('本地服务返回了无效响应，请重新连接后重试。'); });
-    if (!response.ok) throw new Error(data.error || `请求失败：${response.status}`);
+    const data = await response.json().catch(() => { throw new Error(t('本地服务返回了无效响应，请重新连接后重试。')); });
+    if (!response.ok) throw new Error(data.error || t`请求失败：${response.status}`);
     return data as T;
   } catch (error) {
-    if (timeout.aborted) throw new Error('本次请求等待超过 20 秒，请检查本地服务后重试。');
-    if (error instanceof TypeError) throw new Error('无法连接本地服务。请双击「启动争鸣.cmd」，然后点击重新连接。');
+    if (timeout.aborted) throw new Error(t('本次请求等待超过 20 秒，请检查本地服务后重试。'));
+    if (error instanceof TypeError) throw new Error(t('无法连接本地服务。请双击「启动争鸣.cmd」，然后点击重新连接。'));
     throw error;
   }
 }
 
 export function modelOptions(providers: Provider[]) {
-  return providers.flatMap(p => p.models.map(modelId => ({ providerId: p.id, modelId, label: `${p.name} · ${modelId}`, available: p.hasKey || isLocalBaseUrl(p.baseUrl) })));
+  return providers.flatMap(p => p.models.map(modelId => ({ providerId: p.id, modelId, label: `${t(p.name)} · ${modelId}`, available: p.hasKey || isLocalBaseUrl(p.baseUrl) })));
 }
 
 export function scoreMarkdown(value: unknown): string[] {
   const scores = readScorecard(value);
   if (!scores) return [];
-  return ['### 整场表现评分（满分100）', '', '| 维度 | 正方 | 反方 |', '| --- | ---: | ---: |', ...scoreDimensions(scores).map(d => `| ${d.label} / ${d.max} | ${scores.pro[d.key]} | ${scores.con[d.key]} |`), `| 总分 | ${scoreTotal(scores.pro)} | ${scoreTotal(scores.con)} |`, '', ...(scores.tiebreak ? [`同分决胜依据：${scores.tiebreak}`, ''] : [])];
+  return [t('### 整场表现评分（满分100）'), '', t('| 维度 | 正方 | 反方 |'), '| --- | ---: | ---: |', ...scoreDimensions(scores).map(d => `| ${t(d.label)} / ${d.max} | ${scores.pro[d.key]} | ${scores.con[d.key]} |`), t`| 总分 | ${scoreTotal(scores.pro)} | ${scoreTotal(scores.con)} |`, '', ...(scores.tiebreak ? [t`同分决胜依据：${scores.tiebreak}`, ''] : [])];
 }
 
 export function exportMatch(match: Match) {
   const { config } = match;
   const content = [
-    `# 争鸣 · AI 辩论场\n\n## ${config.topic}`, '',
-    `- 时间：${new Date(match.createdAt).toLocaleString('zh-CN')}`,
-    `- 模式：${config.teamSize}v${config.teamSize} · ${FORMAT_LABEL[config.format]}`,
-    `- 发言预算：${config.pace === 'timed' ? `传统计时，每轮 ${config.roundSeconds} 秒，常规 ${config.matchSeconds} 秒` : `正文每次最多 ${config.speechChars || 400} 字，单次最长等待 ${config.thinkingSeconds || 180} 秒，常规 ${config.maxRounds || 3} 轮`}`,
-    `- 赛制：${config.judge.timing === 'coach' ? '裁判指导赛（每轮点评）' : '极限攻防（常规结束后裁决）'}；${(config.rulesVersion || 0) >= 2 && config.judge.enabled ? '未决加时，完整三轮后按整场表现评分决胜' : '未分胜负持续加时'}，可手动结束。`,
-    `- 语言风格：${styleLabels(config)}`,
-    `- 来源：${config.demo ? '演示模式（预设脚本，非真实模型输出）' : '真实模型 API'}`,
-    `- 比赛规程：${config.protocol === 'structured' ? '分阶段正式赛 · 独立立论 / 双向质询 / 争点攻防 / 总结陈词' : '自由攻防'}`,
-    `- 裁判：${config.judge.enabled ? `裁判（${config.judge.modelId}） · ${config.judge.appeals ? '允许一次申诉' : '不接受申诉'}` : '无裁判'}`,
-    `- 结果：${match.result.detail}`, '',
-    '## 赛题约定与公共资料', '',
-    ...(config.brief ? [`- 命题类型：${MOTION_LABEL[config.brief.kind]}`, ...(['definitions', 'scope', 'criterion', 'proBurden', 'conBurden'] as const).map((key, i) => `- ${['概念定义', '讨论范围', '比较标准', '正方举证', '反方举证'][i]}：${config.brief![key] || '未预设，由双方公开论证'}`)] : ['未预设赛题约定。']), '',
-    ...(config.evidence || []).flatMap(card => [`### [${card.id}] ${card.title}`, `${EVIDENCE_LABEL[card.kind]} · ${card.source || '未填写出处'}`, '', card.content, '']),
+    t`# 争鸣 · AI 辩论场\n\n## ${config.topic}`, '',
+    t`- 时间：${new Date(match.createdAt).toLocaleString(dateLocale())}`,
+    t`- 模式：${config.teamSize}v${config.teamSize} · ${t(FORMAT_LABEL[config.format])}`,
+    t`- 发言预算：${config.pace === 'timed' ? t`传统计时，每轮 ${config.roundSeconds} 秒，常规 ${config.matchSeconds} 秒` : t`正文每次最多 ${config.speechChars || 400} 字，单次最长等待 ${config.thinkingSeconds || 180} 秒，常规 ${config.maxRounds || 3} 轮`}`,
+    t`- 赛制：${config.judge.timing === 'coach' ? t('裁判指导赛（每轮点评）') : t('极限攻防（常规结束后裁决）')}；${(config.rulesVersion || 0) >= 2 && config.judge.enabled ? t('未决加时，完整三轮后按整场表现评分决胜') : t('未分胜负持续加时')}，可手动结束。`,
+    t`- 语言风格：${styleLabels(config, getLocale())}`,
+    t`- 来源：${config.demo ? t('演示模式（预设脚本，非真实模型输出）') : t('真实模型 API')}`,
+    t`- 比赛规程：${config.protocol === 'structured' ? t('分阶段正式赛 · 独立立论 / 双向质询 / 争点攻防 / 总结陈词') : t('自由攻防')}`,
+    t`- 裁判：${config.judge.enabled ? t`裁判（${config.judge.modelId}） · ${config.judge.appeals ? t('允许一次申诉') : t('不接受申诉')}` : t('无裁判')}`,
+    t`- 结果：${t(match.result.detail)}`, '',
+    t('## 赛题约定与公共资料'), '',
+    ...(config.brief ? [t`- 命题类型：${t(MOTION_LABEL[config.brief.kind])}`, ...(['definitions', 'scope', 'criterion', 'proBurden', 'conBurden'] as const).map((key, i) => `- ${[t('概念定义'), t('讨论范围'), t('比较标准'), t('正方举证'), t('反方举证')][i]}：${config.brief![key] || t('未预设，由双方公开论证')}`)] : [t('未预设赛题约定。')]), '',
+    ...(config.evidence || []).flatMap(card => [`### [${card.id}] ${card.title}`, `${t(EVIDENCE_LABEL[card.kind])} · ${card.source || t('未填写出处')}`, '', card.content, '']),
     '---', '',
-    ...(match.preparation?.length ? ['# 赛前更衣室（双方模型各自只能读取本队内容）', '', ...match.preparation.flatMap(m => [`## 第 ${m.round} 次商议 · ${m.name}（${m.model}）`, '', m.text, '']), '---', '', '# 正式比赛', ''] : []),
-    ...match.messages.flatMap((m, index) => [`## [${messageRef(index)}] 第 ${m.round} 轮 · ${m.name}${m.side === 'audience' ? '' : `（${m.model}）`}${m.stage ? ` · ${STAGE_LABEL[m.stage]}` : ''}`, ...(m.replyTo && match.messages.some(target => target.id === m.replyTo) ? [`> 指定回应 [${messageRef(match.messages.findIndex(target => target.id === m.replyTo))}]`] : []), '', m.text, '', ...scoreMarkdown(m.scores), ...(m.forfeited ? ['> 本方明确弃守立场，按规则判负。', ''] : []), ...(m.timeLimit !== undefined ? [`> 本次最长等待：${m.timeLimit} 秒；正文上限 ${m.charLimit || config.speechChars || 400} 字。`, ''] : []), ...(m.finishReason === 'timeout' ? ['> 本次发言因等待超时结束。', ''] : []), ...(m.warning ? [`> ${m.warning}`, ''] : [])]),
+    ...(match.preparation?.length ? [t('# 赛前更衣室（双方模型各自只能读取本队内容）'), '', ...match.preparation.flatMap(m => [t`## 第 ${m.round} 次商议 · ${t(m.name)}（${m.model}）`, '', m.text, '']), '---', '', t('# 正式比赛'), ''] : []),
+    ...match.messages.flatMap((m, index) => [t`## [${messageRef(index)}] 第 ${m.round} 轮 · ${t(m.name)}${m.side === 'audience' ? '' : `（${m.model}）`}${m.stage ? ` · ${t(STAGE_LABEL[m.stage])}` : ''}`, ...(m.replyTo && match.messages.some(target => target.id === m.replyTo) ? [t`> 指定回应 [${messageRef(match.messages.findIndex(target => target.id === m.replyTo))}]`] : []), '', m.text, '', ...scoreMarkdown(m.scores), ...(m.forfeited ? [t('> 本方明确弃守立场，按规则判负。'), ''] : []), ...(m.timeLimit !== undefined ? [t`> 本次最长等待：${m.timeLimit} 秒；正文上限 ${m.charLimit || config.speechChars || 400} 字。`, ''] : []), ...(m.finishReason === 'timeout' ? [t('> 本次发言因等待超时结束。'), ''] : []), ...(m.warning ? [`> ${t(m.warning)}`, ''] : [])]),
   ].join('\n');
   const blob = new Blob([normalizeJudgeTitle(content)], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `争鸣-${config.topic.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').slice(0, 35)}-${new Date(match.createdAt).toISOString().slice(0, 10)}.md`;
+  a.download = t`争鸣-${config.topic.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').slice(0, 35)}-${new Date(match.createdAt).toISOString().slice(0, 10)}.md`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }

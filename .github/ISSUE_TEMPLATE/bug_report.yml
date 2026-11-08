@@ -26,7 +26,7 @@ body:
     attributes:
       label: 使用环境
       description: 填写知道的信息即可，程序版本可在环境诊断报告中查看。
-      placeholder: Windows 11、Edge、便携版 1.1.0-beta.1
+      placeholder: Windows 11、Edge、便携版 1.1.0-beta.2
   - type: input
     id: model
     attributes:

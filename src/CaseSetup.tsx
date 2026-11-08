@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { useState } from 'react';
 import { ArrowUpRight, FileText, Plus, Trash2 } from 'lucide-react';
 import type { DebateConfig } from '../shared/types';
@@ -52,7 +53,7 @@ export default function CaseSetup({ config, onChange }: Props) {
       : [...cards, card];
     const parsed = evidenceSchema.safeParse(next);
     if (!parsed.success) {
-      setError('请填写资料标题与内容，每条内容最多 2400 字，最多 12 条资料。');
+      setError(t('请填写资料标题与内容，每条内容最多 2400 字，最多 12 条资料。'));
       return;
     }
     onChange((current) => ({ ...current, evidence: parsed.data }));
@@ -61,14 +62,14 @@ export default function CaseSetup({ config, onChange }: Props) {
   }
   return (
     <div className="case-setup">
-      <div className="choice-stack" aria-label="比赛规程">
+      <div className="choice-stack" aria-label={t("比赛规程")}>
         <button
           className={`choice ${config.protocol !== 'structured' ? 'selected' : ''}`}
           aria-pressed={config.protocol !== 'structured'}
           onClick={() => onChange((c) => ({ ...c, protocol: 'arena' }))}
         >
-          <strong>自由攻防</strong>
-          <span>双方轮流发言，开放决定战术与交锋路线。</span>
+          <strong>{t("自由攻防")}</strong>
+          <span>{t("双方轮流发言，开放决定战术与交锋路线。")}</span>
         </button>
         <button
           className={`choice ${config.protocol === 'structured' ? 'selected' : ''}`}
@@ -82,38 +83,34 @@ export default function CaseSetup({ config, onChange }: Props) {
             }))
           }
         >
-          <strong>分阶段正式赛</strong>
+          <strong>{t("分阶段正式赛")}</strong>
           <span>
-            独立立论 → 双向质询 → 争点攻防 →
-            总结陈词。每位辩手均有提问与作答机会，首发方逐轮轮换。
-          </span>
+            {t("独立立论 → 双向质询 → 争点攻防 → 总结陈词。每位辩手均有提问与作答机会，首发方逐轮轮换。")}</span>
         </button>
       </div>
       {config.protocol === 'structured' && (
         <p className="case-callout">
-          常规 {regulationRounds(config)} 轮 ·{' '}
+          {t("常规")} {regulationRounds(config)}  {t("轮 ·")}{' '}
           {2 * config.teamSize * (regulationRounds(config) + 1)}{' '}
-          次选手发言。使用独立等待预算，完整走完赛程后裁决；可在「发言预算」调整轮数。独立立论互不可见，第二轮起读取整场记录。
-        </p>
+          {t("次选手发言。使用独立等待预算，完整走完赛程后裁决；可在「发言预算」调整轮数。独立立论互不可见，第二轮起读取整场记录。")}</p>
       )}
       <section className="case-section">
         <div className="case-section-heading">
           <span>01</span>
           <div>
-            <h3>把命题说清楚</h3>
-            <p>可选填写。公开约定供双方、备战和裁判共同使用。</p>
+            <h3>{t("把命题说清楚")}</h3>
+            <p>{t("可选填写。公开约定供双方、备战和裁判共同使用。")}</p>
           </div>
         </div>
         <label className="module-field">
-          命题类型
-          <select
-            aria-label="命题类型"
+          {t("命题类型")}<select
+            aria-label={t("命题类型")}
             value={brief.kind}
             onChange={(e) => updateBrief('kind', e.target.value)}
           >
             {Object.entries(MOTION_LABEL).map(([id, label]) => (
               <option key={id} value={id}>
-                {label}
+                {t(label)}
               </option>
             ))}
           </select>
@@ -121,13 +118,13 @@ export default function CaseSetup({ config, onChange }: Props) {
         <div className="brief-fields">
           {briefFields.map(([key, label, placeholder]) => (
             <label key={key} className="module-field">
-              {label}
+              {t(label)}
               <textarea
-                aria-label={label}
+                aria-label={t(label)}
                 rows={2}
                 maxLength={1200}
                 value={brief[key]}
-                placeholder={placeholder}
+                placeholder={t(placeholder)}
                 onChange={(e) => updateBrief(key, e.target.value)}
               />
             </label>
@@ -138,8 +135,8 @@ export default function CaseSetup({ config, onChange }: Props) {
         <div className="case-section-heading">
           <span>02</span>
           <div>
-            <h3>公共资料库</h3>
-            <p>同一份资料，同等知情。保留出处，并区分材料、实例和假设。</p>
+            <h3>{t("公共资料库")}</h3>
+            <p>{t("同一份资料，同等知情。保留出处，并区分材料、实例和假设。")}</p>
           </div>
           <small>{cards.length}/12</small>
         </div>
@@ -149,11 +146,11 @@ export default function CaseSetup({ config, onChange }: Props) {
               <div>
                 <span className="ref-label">[{card.id}]</span>
                 <strong>{card.title}</strong>
-                <small>{EVIDENCE_LABEL[card.kind]}</small>
+                <small>{t(EVIDENCE_LABEL[card.kind])}</small>
               </div>
               <p>{card.content}</p>
               <footer>
-                <span>{card.source || '未填写出处'}</span>
+                <span>{card.source || t('未填写出处')}</span>
                 <button
                   className="text-action"
                   onClick={() => {
@@ -161,12 +158,11 @@ export default function CaseSetup({ config, onChange }: Props) {
                     setError('');
                   }}
                 >
-                  编辑
-                  <ArrowUpRight size={12} />
+                  {t("编辑")}<ArrowUpRight size={12} />
                 </button>
                 <button
                   className="icon-button"
-                  aria-label={`移除资料 ${card.id}`}
+                  aria-label={t`移除资料 ${card.id}`}
                   onClick={() => {
                     onChange((c) => ({
                       ...c,
@@ -186,25 +182,23 @@ export default function CaseSetup({ config, onChange }: Props) {
         {!cards.length && !draft && (
           <div className="case-empty">
             <FileText size={23} />
-            <p>可以先放入几条材料，让论证有据可循。</p>
+            <p>{t("可以先放入几条材料，让论证有据可循。")}</p>
           </div>
         )}
         {draft ? (
           <div className="evidence-editor">
-            <h4>{draft.id ? `编辑 [${draft.id}]` : '添加资料'}</h4>
+            <h4>{draft.id ? t`编辑 [${draft.id}]` : t('添加资料')}</h4>
             <label className="module-field">
-              资料标题
-              <input
-                aria-label="资料标题"
+              {t("资料标题")}<input
+                aria-label={t("资料标题")}
                 maxLength={120}
                 value={draft.title}
                 onChange={(e) => setDraft({ ...draft, title: e.target.value })}
               />
             </label>
             <label className="module-field">
-              资料类型
-              <select
-                aria-label="资料类型"
+              {t("资料类型")}<select
+                aria-label={t("资料类型")}
                 value={draft.kind}
                 onChange={(e) =>
                   setDraft({
@@ -215,15 +209,14 @@ export default function CaseSetup({ config, onChange }: Props) {
               >
                 {Object.entries(EVIDENCE_LABEL).map(([id, label]) => (
                   <option key={id} value={id}>
-                    {label}
+                    {t(label)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="module-field">
-              内容与适用边界
-              <textarea
-                aria-label="内容与适用边界"
+              {t("内容与适用边界")}<textarea
+                aria-label={t("内容与适用边界")}
                 rows={4}
                 maxLength={2400}
                 value={draft.content}
@@ -233,16 +226,15 @@ export default function CaseSetup({ config, onChange }: Props) {
               />
             </label>
             <label className="module-field">
-              出处、日期或链接
-              <input
-                aria-label="出处、日期或链接"
+              {t("出处、日期或链接")}<input
+                aria-label={t("出处、日期或链接")}
                 maxLength={1000}
                 value={draft.source}
                 onChange={(e) => setDraft({ ...draft, source: e.target.value })}
-                placeholder="填写原文摘要及出处，模型只会收到这里写下的内容"
+                placeholder={t("填写原文摘要及出处，模型只会收到这里写下的内容")}
               />
             </label>
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{t(error)}</p>}
             <div className="evidence-editor-actions">
               <button
                 className="secondary-button"
@@ -251,11 +243,9 @@ export default function CaseSetup({ config, onChange }: Props) {
                   setError('');
                 }}
               >
-                取消
-              </button>
+                {t("取消")}</button>
               <button className="primary-button" onClick={saveCard}>
-                保存资料
-              </button>
+                {t("保存资料")}</button>
             </div>
           </div>
         ) : (
@@ -268,13 +258,10 @@ export default function CaseSetup({ config, onChange }: Props) {
             }}
           >
             <Plus size={15} />
-            添加公共资料
-          </button>
+            {t("添加公共资料")}</button>
         )}
         <p className="module-note">
-          资料随本场存档并写入导出文件。来源材料标为待核实，系统不会自动访问链接或核验事实。每条资料可用
-          [E编号] 引用。
-        </p>
+          {t("资料随本场存档并写入导出文件。来源材料标为待核实，系统不会自动访问链接或核验事实。每条资料可用 [E编号] 引用。")}</p>
       </section>
     </div>
   );

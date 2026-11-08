@@ -1,3 +1,6 @@
+import { translateMessage } from './messages.ts';
+import type { Locale } from './locale.ts';
+
 export const EXPRESSION_STYLES = [
   { id: 'natural', label: '生活化', description: '用日常语言和具体生活场景，把道理讲明白。', prompt: '用日常词汇、具体生活场景接话，像当面交流，避免论文腔。' },
   { id: 'sharp', label: '言辞犀利', description: '精准指出漏洞，敢追问、敢反击，针对论点。', prompt: '精准揭示前后矛盾、偷换和未答问题，反问有力，针对论点而非人身。' },
@@ -15,6 +18,6 @@ export function effectiveStyles(config: { language: 'natural' | 'witty' | 'rigor
   return config.language === 'witty' ? ['natural', 'sharp', 'humorous'] : config.language === 'rigorous' ? ['rigorous'] : ['natural'];
 }
 
-export function styleLabels(config: Parameters<typeof effectiveStyles>[0]) {
-  return effectiveStyles(config).map(id => EXPRESSION_STYLES.find(s => s.id === id)!.label).join(' · ');
+export function styleLabels(config: Parameters<typeof effectiveStyles>[0], locale: Locale = 'zh-CN') {
+  return effectiveStyles(config).map(id => translateMessage(locale, EXPRESSION_STYLES.find(s => s.id === id)!.label)).join(' · ');
 }

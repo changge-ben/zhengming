@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import type { DebateConfig, Utterance } from '../shared/types';
 import { SIDE_LABEL, speakerName } from '../shared/types';
 import {
@@ -28,10 +29,10 @@ export function ProtocolTimeline({
   if (config.protocol !== 'structured') return null;
   const current = stageForRound(config, round || 1, overtime);
   const steps = [
-    ['opening', '01', '独立立论'],
-    ['question', '02', '双向质询'],
-    ['rebuttal', '03', '争点攻防'],
-    ['closing', '04', '总结陈词'],
+    ['opening', '01', t('独立立论')],
+    ['question', '02', t('双向质询')],
+    ['rebuttal', '03', t('争点攻防')],
+    ['closing', '04', t('总结陈词')],
   ] as const;
   const currentIndex = overtime
     ? 4
@@ -42,7 +43,7 @@ export function ProtocolTimeline({
   return (
     <div
       className={`protocol-timeline ${live ? 'is-live' : ''}`}
-      aria-label="正式赛程"
+      aria-label={t("正式赛程")}
     >
       <svg
         className="protocol-line"
@@ -71,17 +72,17 @@ export function ProtocolTimeline({
             <strong>{title}</strong>
             <small>
               {id === 'opening'
-                ? '共同资料 · 相互盲开'
+                ? t('共同资料 · 相互盲开')
                 : id === 'question'
-                  ? '双方提问 · 指定作答'
+                  ? t('双方提问 · 指定作答')
                   : id === 'rebuttal'
-                    ? `${regulationRounds(config) - 3} 轮整场交锋`
-                    : '归纳比较 · 完整收束'}
+                    ? t`${regulationRounds(config) - 3} 轮整场交锋`
+                    : t('归纳比较 · 完整收束')}
             </small>
           </div>
         </div>
       ))}
-      {overtime && <p>加时阶段 · 继续处理未决争点</p>}
+      {overtime && <p>{t("加时阶段 · 继续处理未决争点")}</p>}
     </div>
   );
 }
@@ -96,17 +97,16 @@ export default function DebateAnalysis({
     <div className="debate-analysis">
       <div className="analysis-intro">
         <span className="eyebrow">THE ARGUMENT DESK</span>
-        <h2>沿着交锋，回到依据。</h2>
+        <h2>{t("沿着交锋，回到依据。")}</h2>
         <p>
-          索引记录明确引用与指定回应。回应是否有效、材料能否支持结论，由整场论证与裁判判词说明。
-        </p>
+          {t("索引记录明确引用与指定回应。回应是否有效、材料能否支持结论，由整场论证与裁判判词说明。")}</p>
       </div>
       <div className="overview-stats">
         {[
-          ['发言间引用', audit.links.length],
-          ['指定质询', audit.questions.length],
-          ['公共资料', config.evidence?.length || 0],
-          ['待核对编号', audit.invalid.length],
+          [t('发言间引用'), audit.links.length],
+          [t('指定质询'), audit.questions.length],
+          [t('公共资料'), config.evidence?.length || 0],
+          [t('待核对编号'), audit.invalid.length],
         ].map(([label, value]) => (
           <div key={label}>
             <strong>{value}</strong>
@@ -115,11 +115,10 @@ export default function DebateAnalysis({
         ))}
       </div>
       <section className="analysis-section">
-        <h3>质询与回应</h3>
+        <h3>{t("质询与回应")}</h3>
         {!audit.questions.length && (
           <p className="analysis-empty">
-            正式赛第二轮产生指定质询；自由攻防通过正文引用关联。
-          </p>
+            {t("正式赛第二轮产生指定质询；自由攻防通过正文引用关联。")}</p>
         )}
         {audit.questions.map((item) => (
           <article className="question-track" key={item.index}>
@@ -130,7 +129,7 @@ export default function DebateAnalysis({
               [{messageRef(item.index)}]
             </button>
             <div>
-              <strong>{messages[item.index].name}的质询</strong>
+              <strong>{t(messages[item.index].name)}{t("的质询")}</strong>
               <p>{messages[item.index].text}</p>
             </div>
             <button
@@ -139,10 +138,10 @@ export default function DebateAnalysis({
               onClick={() => onReference(messageRef(item.answerIndex))}
             >
               {item.complete
-                ? '已有完整回应'
+                ? t('已有完整回应')
                 : item.answerIndex >= 0
-                  ? '回应未正常完成'
-                  : '等待回应'}
+                  ? t('回应未正常完成')
+                  : t('等待回应')}
               {item.answerIndex >= 0 && (
                 <small>[{messageRef(item.answerIndex)}] ↗</small>
               )}
@@ -151,46 +150,43 @@ export default function DebateAnalysis({
         ))}
       </section>
       <section className="analysis-section">
-        <h3>跨发言引用</h3>
-        <p className="analysis-caption">最近 40 条显式引用，点击回到原话。</p>
+        <h3>{t("跨发言引用")}</h3>
+        <p className="analysis-caption">{t("最近 40 条显式引用，点击回到原话。")}</p>
         <div className="reference-threads">
           {audit.links.slice(-40).map(({ from, to }) => (
             <div className="reference-thread" key={`${from}-${to}`}>
               <button onClick={() => onReference(messageRef(from))}>
-                [{messageRef(from)}] {messages[from].name}
+                [{messageRef(from)}] {t(messages[from].name)}
               </button>
-              <span>引用 →</span>
+              <span>{t("引用 →")}</span>
               <button onClick={() => onReference(messageRef(to))}>
-                [{messageRef(to)}] 第{messages[to].round}轮 ·{' '}
-                {messages[to].name}
+                [{messageRef(to)}] {t`第 ${messages[to].round} 轮`} ·{' '}
+                {t(messages[to].name)}
               </button>
             </div>
           ))}
           {!audit.links.length && (
             <p className="analysis-empty">
-              发言中引用 [M编号] 后，会在这里形成可点击的交锋线索。
-            </p>
+              {t("发言中引用 [M编号] 后，会在这里形成可点击的交锋线索。")}</p>
           )}
         </div>
         {audit.invalid.length > 0 && (
           <details className="invalid-references">
-            <summary>{audit.invalid.length} 个编号需要核对</summary>
+            <summary>{audit.invalid.length}  {t("个编号需要核对")}</summary>
             {audit.invalid.map((item) => (
               <p key={`${item.from}-${item.ref}`}>
                 <button onClick={() => onReference(messageRef(item.from))}>
                   [{messageRef(item.from)}]
                 </button>{' '}
-                引用了 [{item.ref}]，该资料不存在或该发言当时尚未出现。
-              </p>
+                {t("引用了 [")}{item.ref}{t("]，该资料不存在或该发言当时尚未出现。")}</p>
             ))}
           </details>
         )}
       </section>
       <section className="analysis-section">
-        <h3>资料与引用记录</h3>
+        <h3>{t("资料与引用记录")}</h3>
         <p className="analysis-caption">
-          材料由用户提供，来源真实性及代表性仍需核实。
-        </p>
+          {t("材料由用户提供，来源真实性及代表性仍需核实。")}</p>
         {(config.evidence || []).map((card) => (
           <article
             className="evidence-item"
@@ -201,11 +197,11 @@ export default function DebateAnalysis({
             <div>
               <span className="ref-label">[{card.id}]</span>
               <strong>{card.title}</strong>
-              <small>{EVIDENCE_LABEL[card.kind]}</small>
+              <small>{t(EVIDENCE_LABEL[card.kind])}</small>
             </div>
             <p>{card.content}</p>
             <footer>
-              <span>{card.source || '未填写出处'}</span>
+              <span>{card.source || t('未填写出处')}</span>
               <div className="evidence-citations">
                 {audit.evidenceUse.get(card.id)?.map((index) => (
                   <button
@@ -216,7 +212,7 @@ export default function DebateAnalysis({
                   </button>
                 ))}
                 {!audit.evidenceUse.get(card.id)?.length && (
-                  <small>暂无显式引用</small>
+                  <small>{t("暂无显式引用")}</small>
                 )}
               </div>
             </footer>
@@ -224,19 +220,18 @@ export default function DebateAnalysis({
         ))}
         {!config.evidence?.length && (
           <p className="analysis-empty">
-            本场未预置资料。可在开场大厅的「赛题与规程」添加。
-          </p>
+            {t("本场未预置资料。可在开场大厅的「赛题与规程」添加。")}</p>
         )}
       </section>
       <section className="analysis-section">
-        <h3>双方公开阵容</h3>
+        <h3>{t("双方公开阵容")}</h3>
         <div className="analysis-rosters">
           {(['pro', 'con'] as const).map((side) => (
             <div key={side}>
-              <strong>{SIDE_LABEL[side]}</strong>
+              <strong>{t(SIDE_LABEL[side])}</strong>
               {config.teams[side].slice(0, config.teamSize).map((s) => (
                 <p key={s.member}>
-                  {speakerName(side, s.member)}（{s.modelId}）
+                  {t(speakerName(side, s.member))}（{config.demo ? t(s.modelId) : s.modelId}）
                 </p>
               ))}
             </div>

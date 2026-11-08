@@ -2,13 +2,17 @@
 
 一个可以自己出题、挑选模型、组建正反方，观看 AI 实时辩论的本地网站。
 
+右上角可切换中文与 English，选择会在当前浏览器保存。首次访问跟随浏览器语言。新比赛按开赛时选定的语言生成发言、备战和裁决，已有辩题与历史发言保留原文。英文预算同样按字符计数，包含空格。
+
+**English quick start** — Download the Windows ZIP below, extract it, and double-click `启动争鸣.cmd`. Use **EN** in the top bar to switch to English, then choose **Watch a demo** without an API key. Connect your own provider under **Model connections** for live debates. Language selection is saved in your browser and applies to newly started matches. Existing topics and speeches keep their original text.
+
 首次打开可点击「先看一场演示」体验。真实模型开赛前会显示常规发言次数，API 费用由所选服务商计费。
 
 进行中的比赛会在当前标签页保存快照。刷新后可找回已生成内容并归档为中止比赛；正常结束的比赛继续进入本地档案。档案删除后可撤销最近一次删除。具体使用边界与后续推广重点见[使用体验回顾](docs/usability-review.md)。
 
 ## 从 GitHub 下载
 
-[下载 Windows 便携测试版](https://github.com/changge-ben/zhengming/releases/download/v1.1.0-beta.1/zhengming-1.1.0-beta.1-windows-x64.zip)
+[下载 Windows 便携测试版 / Download for Windows](https://github.com/changge-ben/zhengming/releases/download/v1.1.0-beta.2/zhengming-1.1.0-beta.2-windows-x64.zip)
 
 普通 Windows 用户可下载上面的便携 ZIP，完整解压后双击 **启动争鸣.cmd**。便携版自带运行环境，首次使用可直接体验脚本演示。另附 **停止争鸣.cmd** 与 **环境诊断.cmd**。模型配置保存在本机固定数据目录，更新时解压到新文件夹并使用原浏览器与地址。详细步骤见[便携版使用与发布说明](docs/windows-release.md)。
 
