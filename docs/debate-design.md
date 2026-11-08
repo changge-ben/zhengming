@@ -1,55 +1,55 @@
-# 争鸣的赛程与论证设计
+# Debate schedule and argument design
 
-本次设计把比赛的阶段、材料、提问与引用变成可追溯的数据。正式赛是为争鸣设计的比赛规程，未声称复刻某项线下赛事的官方规则。
+Structured debates follow Zhengming's published application schedule. Stages, shared materials, assigned questions, and citations are represented as traceable data.
 
-## 调研记录
+## Research record
 
-2026 年 11 月 7 日查看以下项目的公开文档与核心实现。源码快照下载到本机 `.local/references`，该目录由 Git 排除。实现采用独立编写的 TypeScript 与 React 代码。
+Public documentation and selected implementation files were reviewed on November 7, 2026. Local reference snapshots are stored under the Git-ignored `.local/references` directory. The application implementation uses independently written TypeScript and React code.
 
-| 参考项目 | 查看内容 | 在争鸣中的应用 |
+| Reference | Material reviewed | Application in Zhengming |
 | --- | --- | --- |
-| [AOSSIE DebateAI](https://github.com/AOSSIE-Org/DebateAI) | README 的正式比赛环节、团队比赛服务 | 用同一套配置贯通赛前、赛程和观战 |
-| [Agent-Debate](https://github.com/starshine-f/Agent-Debate/blob/main/app/graph.py) | 用状态图区分立论、驳论、总结 | 阶段有明确职责，调度由程序决定 |
-| [brainstorm-mcp](https://github.com/spranab/brainstorm-mcp/blob/main/src/debate.ts) | 独立首轮、多轮历史、对最强分歧的检验 | 独立立论，后续读取整场记录并检验强论证 |
-| [AI Colosseum](https://github.com/danielnepo1/ai-colosseum-debate/blob/main/src/colosseum/services/debate.py) | 冻结上下文、证据约束、运行轨迹 | 相同空白正式记录下立论，公共资料同等可见 |
-| [RoundTable](https://github.com/entropyvortex/roundtable/blob/main/lib/engine-rules.ts) | 各规程的最小轮数与统一运行规则 | 共享赛程函数供设置、调度、阶段条使用 |
-| [AI Debate Council](https://github.com/Evan1108-Coder/AI-Debate-Council/blob/master-app-interface/docs/DEBATE_INTELLIGENCE.md) | 质疑与回应记录、资料台账、阶段时间线 | 指定质询与作答、资料引用、交锋索引 |
-| [Agentic Coliseum](https://github.com/hseghetti/agentic-coliseum/blob/main/apps/debate-engine/app/graph/graph.py) | 严格阶段序列与结束后的裁决 | 完整总结后进入裁决，沿用对等申诉与加时 |
-| [Quorum Debate](https://github.com/gkaragioul/quorum-debate/blob/main/src/lib/council/claims.ts) | 主张状态依据事件更新，保留支撑和质疑 | 引用只表示发生了关联，不能据此宣称驳倒或事实成立 |
+| [AOSSIE DebateAI](https://github.com/AOSSIE-Org/DebateAI) | Formal stages and team services | One configuration connects preparation, scheduling, and spectating |
+| [Agent-Debate](https://github.com/starshine-f/Agent-Debate/blob/main/app/graph.py) | State transitions for openings, rebuttals, and summaries | The scheduler assigns explicit stage responsibilities |
+| [brainstorm-mcp](https://github.com/spranab/brainstorm-mcp/blob/main/src/debate.ts) | Independent openings, history, and strong objections | Blind first-round openings followed by whole-match engagement |
+| [AI Colosseum](https://github.com/danielnepo1/ai-colosseum-debate/blob/main/src/colosseum/services/debate.py) | Frozen context, evidence constraints, and traces | Equal opening context and equal shared materials |
+| [RoundTable](https://github.com/entropyvortex/roundtable/blob/main/lib/engine-rules.ts) | Minimum rounds and shared rules | Shared schedule functions serve setup, orchestration, and the timeline |
+| [AI Debate Council](https://github.com/Evan1108-Coder/AI-Debate-Council/blob/master-app-interface/docs/DEBATE_INTELLIGENCE.md) | Questions, response records, and evidence ledgers | Assigned cross-examination and the clash index |
+| [Agentic Coliseum](https://github.com/hseghetti/agentic-coliseum/blob/main/apps/debate-engine/app/graph/graph.py) | Stage ordering and final adjudication | Complete closings before rulings, with equal appeals and overtime |
+| [Quorum Debate](https://github.com/gkaragioul/quorum-debate/blob/main/src/lib/council/claims.ts) | Event-based claim status and support records | Citations record relationships while argument quality remains subject to review |
 
-用户提供的 Roundtable AI、Debate Council 等名称存在多个同名项目。此处明确列出实际采用的仓库，方便核对。
+Several project names have multiple similarly named repositories. The links identify the specific implementations reviewed.
 
-## 已实现的正式赛
+## Structured matches
 
-常规至少四轮，支持 1v1、2v2、3v3。默认自由攻防继续可选，已有配置与档案按原模式读取。
+Regulation has at least four rounds and supports 1v1, 2v2, and 3v3. Open debate remains selectable, and existing configurations and archives retain their recorded format.
 
-1. **独立立论**。每位辩手获得同一份公共资料、相同的空白正式记录及本队备战。所有人的立论会展示给观众，第二轮起选手才能读取。
-2. **双向质询**。同席位的双方各提出一个核心问题，随后由指定的对方成员作答。提问与回答绑定消息 ID，避免下一人随意换题。每位成员各有一次提问与作答机会。
-3. **争点攻防**。至少一轮，每位成员各发言一次，跨轮处理未决争点。增加常规轮数时，增加的是此环节。
-4. **总结陈词**。每位成员归纳双方关键交锋与比较结论。提示明确要求总结不引入对方已没有同等回应机会的新独立论点或资料。
+1. **Independent openings.** Every speaker receives the same shared materials, an empty formal transcript, and their own team's preparation. Spectators see all openings. Speakers receive the combined openings from the second round onward.
+2. **Paired cross-examination.** Corresponding seats each ask one core question and receive an assigned answer. Message IDs bind each response to its question. Every team member has an opportunity to ask and answer.
+3. **Rebuttals.** At least one round gives every member a speech to address unresolved issues across the match. Additional regulation rounds extend this stage.
+4. **Closing statements.** Every member weighs the main exchanges and conclusions. Closing prompts require a fair opportunity for the opponent to address independent arguments and materials.
 
-首发方逐轮轮换。常规发言次数为 `2 × 每队人数 × (常规轮数 + 1)`。正式赛采用独立等待预算，避免轮次倒计时让后面的指定回答失去机会。预算在原有发言设置中调整。
+The starting side alternates each round. Regulation speech count is `2 × team size × (regulation rounds + 1)`. Structured turns receive independent waiting budgets, preserving the assigned respondent's opportunity to answer.
 
-裁判可在赛程结束后裁决，或采用原有逐轮指导。未决加时保留所有队员的完整发言机会。加时三轮后的评分、改判后的对等申诉、双方申诉成功后的完整加时继续适用。
+Judging can occur after regulation or in coached rounds. Unresolved results enter complete overtime rounds. Scoring after three overtime rounds, equal appeals after changed rulings, and a full extra round after two successful appeals remain part of the schedule.
 
-## 赛题约定与资料
+## Motion terms and shared materials
 
-赛题说明包括命题类型、定义、讨论范围、比较标准与双方举证责任。可留空，模型需要公开论证空白项，不能假装双方已经达成约定。填写项会进入双方备战、正式交锋、申诉与裁判的共同上下文。
+The optional motion brief includes its type, definitions, scope, comparison criterion, and both teams' burdens of proof. Supplied terms enter preparation, speeches, appeals, and adjudication. Unspecified terms remain open for public argument.
 
-公共资料最多 12 条，每条有稳定的 `E编号`、标题、内容、类型及出处。材料类型区分来源材料、生活实例、假设情境。资料正文必须显式提供。系统不会仅凭 URL 自动抓取原文，来源材料标记为待核实。
+Up to 12 shared cards contain stable `E` references, a title, content, a type, and a source. Types distinguish source materials, everyday examples, and hypothetical situations. Users provide the material text. Source cards are presented as supplied materials awaiting verification.
 
-所有材料先通过长度、内容和唯一编号校验。赛题约定与资料随完整比赛存档，并进入 Markdown 导出。
+Validation checks content, length, and unique IDs. The complete motion brief and materials are archived and exported with the match.
 
-## 可追溯交锋
+## Traceable exchanges
 
-正式记录中的每条消息按顺序编为 `[M1]`、`[M2]` 等。选手和裁判可以跨轮引用，正文中的编号可点击回到原话。资料用 `[E1]` 等编号引用。
+Formal messages receive sequential `[M1]`, `[M2]`, and subsequent references. Speakers and judges can cite earlier rounds, and viewers can jump to the original speech. Materials use `[E1]` and subsequent references.
 
-「交锋索引」提供指定质询与回答、最近 40 条显式发言引用、公共资料引用和无效编号提示。完整回应指该指定发言有正文且正常结束，其内容是否回答充分需要结合原话判断。引用次数不作为质量分或事实可信度。
+The clash index lists assigned questions and answers, the latest 40 explicit speech citations, material citations, and invalid references. A complete response indicates a normally completed speech containing visible text. Its relevance and persuasive quality are evaluated against the actual exchange.
 
-本次没有引入关键词自动判胜或将引用次数换算成概率。现有整场评分仍由裁判按公布的量表完成，判词被要求引用决定性发言与材料。
+Reference counts describe recorded relationships. Whole-match scoring follows the judge's published rubric, and adjudication prompts request decisive speech and material references.
 
-## 验证范围与边界
+## Verification scope
 
-自动化覆盖所有队伍规模的阶段公平性、首发轮换、指定回答绑定、独立开场、完整历史、资料验证、无效引用与中断回应。原有认输、加时、申诉及接口回归继续执行。
+Automated checks cover all team sizes, stage fairness, starting-side rotation, assigned responses, independent openings, complete history, material validation, invalid references, interrupted answers, concession, overtime, appeals, and endpoint regressions.
 
-浏览器使用脚本演示检查配置、资料编辑、阶段推进、引用跳转与档案重看。真实模型遵循环节和引用提示的质量、长上下文时的响应，以及裁判对具体辩题的公允性，需要接入真实接口另行评估。模型可能遗漏引用或不充分回答，索引保留真实记录供复核。
+Browser checks use scripted demos to exercise setup, material editing, stage progression, reference navigation, and archive replay. Actual providers are evaluated separately for stage compliance, citation quality, long-context response behavior, and adjudication on particular motions. The index retains the generated record for human review.

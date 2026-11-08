@@ -1,15 +1,23 @@
-争鸣 · AI 辩论场 · 打开方法
+Zhengming · AI Debate Arena — Startup guide
 
-1. 按键盘 Win + E，打开文件资源管理器。
-2. 打开保存或解压后的争鸣项目文件夹。如果下载的是 ZIP 文件，需要先完整解压。
-3. 双击「启动争鸣.cmd」。如果电脑隐藏了扩展名，它可能显示为「启动争鸣」，类型为「Windows 命令脚本」。
-4. 等待几秒，浏览器会自动打开网站。
+1. Open the folder containing the extracted project or portable package.
+2. Double-click 启动争鸣.cmd. Windows may hide the .cmd extension.
+3. Wait for the local service to start and the browser to open.
+4. Select EN in the top bar for the English interface.
 
-如果浏览器没有自动打开，在浏览器地址栏输入：
+If the browser does not open automatically, open this address after startup.
 http://127.0.0.1:5173/
 
-电脑重启后，需要重新双击启动脚本。服务运行后，可以关闭启动窗口。
-仅打开网址不会自动启动服务；连接不上时，先双击启动脚本。
-已经勾选「记住 API Key」的模型无需重新填密钥。
+Run the startup script again after restarting your computer.
+The startup window can close after the background service is ready.
+If a connection fails, start the local service and use Reconnect in the app.
+Keys saved with Remember API key are restored for the same Windows account.
 
-备用方法：在此文件夹的终端执行 npm run dev，保持终端运行，再打开上面的网址。
+Source installations can also run npm run dev in the project terminal.
+Keep that terminal running while using the development service.
+
+English repository
+https://github.com/changge-ben/zhengming
+
+Chinese repository and domestic downloads
+https://gitee.com/shi-blca/zhengming

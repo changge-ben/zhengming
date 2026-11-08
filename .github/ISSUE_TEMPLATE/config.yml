@@ -1,8 +1,11 @@
 blank_issues_enabled: true
 contact_links:
-  - name: 下载 Windows 测试版
+  - name: Download the Windows beta
     url: https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.2
-    about: 下载便携包，解压后双击启动。
-  - name: 查看使用与更新说明
+    about: Download the portable ZIP, extract it, and launch the app.
+  - name: Read the usage and update guide
     url: https://github.com/changge-ben/zhengming/blob/main/docs/windows-release.md
-    about: 查看启动、停止、诊断、数据位置和更新方法。
+    about: Startup, shutdown, diagnostics, data locations, and updates.
+  - name: Chinese repository and downloads
+    url: https://gitee.com/shi-blca/zhengming
+    about: Chinese documentation and domestic Gitee downloads.

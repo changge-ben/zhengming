@@ -1,45 +1,45 @@
-# Windows 便携版与发布说明
+# Windows portable beta
 
-本次发布版本为 **1.1.0-beta.2**。支持中英文切换、英文演示与英文新比赛，语言选择在浏览器保存。这是面向 Windows x64 用户的早期测试版，适合邀请首批用户体验并收集反馈。
+The current version is **1.1.0-beta.2** for Windows x64. It includes English and Chinese interface selection, English demos, and language-aware new matches.
 
-## 用户使用
+[English distribution on GitHub](https://github.com/changge-ben/zhengming) · [Chinese distribution on Gitee](https://gitee.com/shi-blca/zhengming)
 
-1. 从 [GitHub 版本页面](https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.2)下载 `zhengming-1.1.0-beta.2-windows-x64.zip`。
-2. 完整解压到固定目录。目录名称可以包含中文与空格。
-3. 双击「启动争鸣.cmd」，浏览器会打开本机网站。
-4. 点击「先看一场演示」体验；真实模型在「模型接入」中设置。
-5. 先在网页结束比赛，再双击「停止争鸣.cmd」停止服务。
-6. 遇到问题双击「环境诊断.cmd」，打开本地诊断报告。
+## Download and launch
 
-便携版包含经官方 SHA-256 表校验的 [Node.js 24.22.2 Windows x64 运行时](https://nodejs.org/dist/v24.22.2/)。客户端使用默认浏览器，服务运行于本机回环地址 `http://127.0.0.1:5173/`。使用时无需另装 Node、Git 或下载 npm 依赖。真实模型需要网络和使用者自己的 API 权限。
+1. Download `zhengming-1.1.0-beta.2-windows-x64.zip` from the [GitHub release page](https://github.com/changge-ben/zhengming/releases/tag/v1.1.0-beta.2).
+2. Extract the complete ZIP into a stable folder. Folder names can include spaces and Chinese characters.
+3. Double-click **启动争鸣.cmd**. The default browser opens the local app.
+4. Select **EN**, then **Watch a demo**. Configure live providers under **Model connections**.
+5. End the match before running **停止争鸣.cmd** to stop the service.
+6. Run **环境诊断.cmd** for a local diagnostic report.
 
-## 数据与更新
+The package contains the official [Node.js 24.22.2 Windows x64 runtime](https://nodejs.org/dist/v24.22.2/), checked against its published SHA-256 list. It opens `http://127.0.0.1:5173/` and provides the runtime and dependencies needed to run the app. Live providers require network access and the user's API permissions.
 
-程序文件与用户配置分开。
+## Data and updates
 
-| 内容 | 保存位置 |
+| Content | Location |
 | --- | --- |
-| 模型入口、模型列表、主动记住的加密密钥 | `%LOCALAPPDATA%\Zhengming\providers.json` |
-| 服务日志、进程记录、本地诊断报告 | `%LOCALAPPDATA%\Zhengming` |
-| 正式比赛档案与战绩 | 当前浏览器、本机地址对应的本地存储 |
-| 刷新保护快照 | 当前标签页的会话存储 |
+| Providers, model IDs, remembered encrypted keys | `%LOCALAPPDATA%\Zhengming\providers.json` |
+| Service logs, process records, diagnostic reports | `%LOCALAPPDATA%\Zhengming` |
+| Match archives and cumulative results | Local storage for the current browser and app origin |
+| In-progress recovery snapshots | The current tab's session storage |
 
-更新时先结束比赛并停止旧服务，将新版解压到新目录后启动。使用同一 Windows 账户、同一浏览器与地址，继续读取固定配置目录和浏览器档案。将重要比赛导出后再更换电脑、浏览器或清理浏览器数据。
+Finish the current match and stop the old service before updating. Extract the new version into a new folder, then launch it. The same Windows account, browser, and local address continue to use the fixed configuration directory and browser archives. Export important matches before changing devices, browsers, or browser storage.
 
-源码版默认将模型配置保存在项目 `.local/providers.json`。本人从源码版迁移到便携版时，可在停止两边服务后备份目标文件，再将该文件复制到固定配置目录。DPAPI 密文绑定原 Windows 账户与机器，跨设备需重新填写密钥。
+Source installations use `.local/providers.json` in the project folder. To migrate, stop both services, back up the destination file, then copy that configuration into the fixed portable data directory. Windows DPAPI binds remembered keys to the original account and machine. Other devices require the key to be entered again.
 
-## 启动、停止与诊断
+## Startup, stop, and diagnostics
 
-- 启动前检查包内文件清单及 SHA-256。文件缺失或发生变化会给出重新解压的提示。
-- 相同版本已运行时复用现有服务。不同版本仍在运行或端口被其他程序占用时，说明冲突原因。
-- 启动操作由本机互斥锁串行执行，避免重复双击生成两套服务。
-- 停止服务前核对进程 ID、可执行文件与启动时间，并由使用者确认停止，避免误关其他程序。
-- 诊断记录版本、系统、文件校验、服务状态和日志位置，保存在本地。诊断不读取提供商配置、密钥或比赛正文。
-- 使用说明和第三方许可证随包分发。Node 许可证位于 `runtime/NODE-LICENSE.txt`，依赖通知位于 `THIRD-PARTY-NOTICES.txt`。
+- The launcher checks the package file manifest and SHA-256 values before startup. Missing or changed files produce extraction guidance.
+- An already-running matching version is reused. Different versions and occupied ports receive explicit conflict messages.
+- A local mutex serializes startup to handle repeated clicks.
+- Stop checks the process ID, executable, and start time, then asks the user to confirm.
+- Diagnostics record the version, system, file integrity, service status, and log locations in a local report.
+- Runtime and dependency license notices are included in `runtime/NODE-LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`.
 
-## 维护者构建
+## Build and verify
 
-在 Windows、Node 22.12 及以上环境中安装源码依赖。
+Use Windows and Node 22.12 or later in the source folder.
 
 ```powershell
 npm ci
@@ -49,14 +49,14 @@ npm run package:windows
 npm run test:portable
 ```
 
-运行时版本固定为 `24.22.2`，首次构建从 Node.js 官方下载并校验，后续复用本机校验通过的缓存。打包使用显式文件列表，产物只有前端、捆绑后的服务端、运行时、启动工具、使用说明、文件清单与许可证。配置、密钥、日志、参考项目与开发依赖保留在源码环境中。
+The runtime is pinned to `24.22.2`. The first build downloads and verifies it from the official Node.js distribution, and later builds reuse verified cached data. Packaging uses an explicit inclusion list for the frontend, bundled backend, runtime, launch tools, usage guide, integrity manifest, and licenses.
 
-产物位于 `.local/releases`，包含 ZIP、ZIP 的 SHA-256 文本及构建清单。发布清单含程序版本、运行时版本、官方运行时校验值和包内文件校验值。相同版本产物已存在时构建会拒绝覆盖，维护者可重命名旧产物或使用新版本号。
+Artifacts are written to `.local/releases`, including the ZIP, its SHA-256 file, and the build manifest. Existing artifacts with the same version are preserved, and the packager requires a new output location or version for another build.
 
-GitHub Actions 在 Windows runner 中执行类型检查、自动化测试、便携包构建与解压运行检查，随后保留测试产物14天。工作流只授予仓库内容读取权限，测试使用模拟接口与测试密钥。
+GitHub Actions runs type checks, automated tests, portable packaging, and extraction/startup checks on Windows. Artifacts are retained for 14 days. The workflow uses repository read permission and mock providers with fixture credentials.
 
-## 本次验证与边界
+## Verification scope
 
-自动化覆盖原有辩论行为和独立服务端打包运行。便携包另外执行八项完整解压运行检查，覆盖中文空格路径、移除系统 Node 后的启动、静态页面、重复启动、模拟 SSE、DPAPI 保存恢复、移动程序目录、诊断、停止、端口冲突及损坏文件检查。
+Eight portable-package checks cover Unicode and space-containing paths, launch with system Node removed from `PATH`, static assets, repeated startup, mock SSE, DPAPI recovery, moved application folders, diagnostics, stop, port conflicts, and damaged files.
 
-本次在当前 Windows 机器执行，尚需首批用户在其他 Windows 设备反馈兼容性。实际模型权限、流式输出质量和费用需要用各供应商真实接口验证。公网产品需要单独建设账号、额度、密钥归属、费用与服务隔离，后续按具体产品方案推进。
+Current checks run on the development Windows machine and GitHub Windows runners. Broader device feedback and real-provider compatibility checks remain part of beta evaluation.

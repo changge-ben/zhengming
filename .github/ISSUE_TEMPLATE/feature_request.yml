@@ -1,17 +1,17 @@
-name: 提出改进建议
-description: 分享你希望争鸣改善的体验或支持的玩法。
-title: "[建议] "
+name: Suggest an improvement
+description: Share a workflow or feature you would like Zhengming to improve.
+title: "[Feature] "
 body:
   - type: textarea
     id: scenario
     attributes:
-      label: 你想做什么，在哪里遇到了困难
-      description: 具体的使用场景能帮助我们判断改进方向。
-      placeholder: 我想把一场比赛分享给朋友，现在需要……
+      label: What are you trying to do?
+      description: A specific situation helps explain where the experience could improve.
+      placeholder: I want to share a match with friends, and currently...
     validations:
       required: true
   - type: textarea
     id: suggestion
     attributes:
-      label: 你希望怎样改进
-      description: 可以描述操作方式、效果或参考案例。
+      label: How would you improve it?
+      description: Describe the workflow, result, or a relevant example.

@@ -1,39 +1,43 @@
-# 使用体验回顾
+# Usability review
 
-检查日期为 2026 年 11 月 8 日。此次沿首次安装、模型接入、开赛、观战、离开页面和档案管理检查，重点修复影响顺畅使用的具体问题。
+Reviewed on November 8, 2026. The review followed first launch, model setup, starting and watching a match, leaving the page, and archive management.
 
-| 环节 | 发现的问题 | 本次处理 |
+| Area | Observed issue | Implemented improvement |
 | --- | --- | --- |
-| 首次体验 | 新用户需要先理解配置卡片 | 新增无需密钥的一键短演示，玩法指南保留演示入口 |
-| 开赛预期 | 发言规模与额外调用不够直观 | 显示常规选手发言次数、字数、备战及裁判等额外调用说明 |
-| 接口填写 | 粘贴完整端点会拼出重复路径 | 前后端统一整理端点尾部，保留供应商前缀，提前解释协议不匹配、非法地址及查询参数问题 |
-| 模型设置 | 切换或关闭会丢失未保存内容，保存过程中仍能修改表单 | 显示未保存状态，窗口内选择继续编辑或放弃；请求中锁定表单与关闭入口 |
-| 接口验证 | 原“测试”实际只读取模型列表 | 按实际功能更名为“保存并读取模型”，区分配置已保存和列表读取失败 |
-| 本地模型 | 无密钥的本地模型仍显示待接入 | 配置模型后显示本地免密状态，并计入可用服务商数量 |
-| 服务断开 | 页面只在首次加载查询服务，无超时与自动恢复 | 普通请求设20秒超时，失联每5秒重试，就绪每30秒检查，并在页面重新获得焦点或网络恢复时重试 |
-| 刷新与意外离开 | 比赛结束前没有持久记录 | 当前标签页每约2秒保存快照，并在离开或切到后台时尝试补存。恢复为可查看、可导出的中止档案，已完成结果另行保留 |
-| 长对局阅读 | 倒计时、输出更新会重新绘制旧发言，查找回应时反复扫描整份记录 | 旧发言使用记忆化渲染，历史引用按 ID 建索引，仅活动发言更新倒计时 |
-| 回看发言 | 翻到上方后仍被新输出带回底部 | 向上滚动、触摸或使用向上阅读键后暂停跟随，提供回到最新发言入口 |
-| 档案管理 | 删除不可撤销，搜索无匹配没有说明，坏记录可能隐藏整批档案 | 新增最近一次删除撤销与搜索空状态，隔离损坏档案，为损坏消息保留原编号与占位说明 |
-| Windows 启动 | 文档要求的 Node 版本没有实际检查，初装依赖版本可能漂移 | 启动时检查 Node 22.12 及以上，首次使用锁文件安装依赖 |
+| First visit | New users had to understand configuration modules first | A one-click demo is available without an API key |
+| Call expectations | Speech counts and additional calls were unclear | Setup shows regulation speech count, character limits, preparation, and judging costs |
+| Endpoint input | Full endpoints could produce duplicated paths | Client and server normalize endpoint tails while retaining provider prefixes |
+| Unsaved settings | Switching providers or closing could discard work | The settings dialog tracks changes and offers explicit continue or discard actions |
+| Settings during requests | Forms remained editable while saving | Saving locks the form and close action until completion |
+| Endpoint checks | The former test action only fetched model IDs | The button now describes its actual Save & load models operation |
+| Local models | Keyless local endpoints looked disconnected | Configured local providers receive a local connection status |
+| Local service errors | Startup-only checks provided little recovery | Requests time out after 20 seconds, with periodic and focus/network reconnection checks |
+| Accidental refresh | Partial matches had no durable record | The current tab saves snapshots approximately every two seconds and at page lifecycle events |
+| Long transcripts | Output updates repeatedly redrew old speeches | Memoized messages and an ID reference index reduce unnecessary work |
+| Reading earlier speech | New output pulled viewers back down | Upward navigation pauses following and offers a return-to-latest action |
+| Archives | Deletion, failed searches, and malformed entries were difficult to handle | Undo, empty-search states, and per-entry recovery preserve readable records |
+| Windows source launch | Runtime and dependency assumptions were unchecked | The launcher checks Node 22.12+ and installs locked dependencies |
+| Language selection | English audiences needed a complete interface and output language | The saved language switch covers the interface and newly launched matches |
 
-## 当前边界
+## Data and recovery
 
-- 刷新保护使用当前标签页的 `sessionStorage`，普通档案和战绩使用当前来源的 `localStorage`。不同浏览器、主机名和端口的数据分别保存，清理浏览器数据或彻底关闭标签页可能失去尚未归档的快照。
-- 快照恢复用于保存已有发言。离开页面会中断该页的调用，重新进入后由用户决定查看记录或重开比赛。完整服务端续跑需要另外设计比赛状态、调用幂等和恢复点。
-- API Key 继续使用已有的本机加密记住机制。快照只有比赛配置和文本，不包含提供商密钥。
-- 模型列表读取成功只验证列表接口，真实流式生成能力、权限、模型兼容性与费用仍取决于实际服务商。
-- Windows x64 已提供自带运行环境的便携测试版，包含启动、停止、诊断及文件校验工具，详情见[便携版说明](windows-release.md)。源码方式继续保留。当前服务绑定本机，配置与比赛档案保存在使用者设备上。
+Refresh checkpoints use the current tab's `sessionStorage`. Archives and standings use `localStorage` for the current browser origin. Browser, hostname, and port each define separate storage contexts.
 
-## 后续推广重点
+Recovery retains generated speeches in a readable interrupted archive. Leaving an active page ends its page-owned requests. On return, users can view the recovered record or start a new match. Completed results retain their original outcome.
 
-1. **首批用户验证**。Windows 便携版已发布，并通过开发机与 GitHub Windows runner 的构建和运行检查。继续观察其他用户设备上的下载、解压、首次启动和更新体验，通过仓库反馈表收集问题。
-2. **真实接口兼容性验证**。覆盖主流供应商的列表接口、流式输出、长思考、断流、取消及判决修复，发布实际验证矩阵。
-3. **比赛分享与数据便携**。现有 Markdown 导出适合保留正文，可继续改善适合观众阅读的比赛分享、完整档案备份导入、跨设备迁移和可复现的规则版本。服务端续跑另行设计。
-4. **公开部署方案**。若要让用户直接打开公网链接使用，需要独立设计账号、密钥归属、限额、费用与隔离，再部署托管服务。
+Checkpoints contain match configuration and text. Provider credentials remain in the local provider store and its existing Windows encryption mechanism. Model-list discovery verifies the list endpoint. Live generation, permissions, compatibility, and usage charges are evaluated through the actual provider.
 
-## 本轮验证
+The Windows x64 portable beta includes its runtime, start/stop scripts, diagnostics, and package integrity checks. See the [Windows guide](windows-release.md). The service runs on the local loopback interface and stores user configuration and archives on the user's device.
 
-自动化检查覆盖原有赛程、裁判、申诉、取消、断流与密钥行为，以及新增地址整理、损坏档案隔离、快照恢复、已完成结果保留、浏览器存储禁用和 API 错误提示。
+## Further product work
 
-浏览器在独立测试目录和模拟接口中检查一键演示、暂停继续、向上阅读与恢复跟随、模型发现、地址整理、配置切换保护、本地免密状态、档案删除撤销及搜索空状态。用户的模型设置与真实付费接口未用于这些检查。内嵌浏览器的导航保护阻止了活动比赛直接刷新，恢复数据转换通过自动化验证，真实浏览器的完整刷新路径仍需要追加实测。
+1. **First-user feedback.** Continue checking download, extraction, first launch, and updates on other Windows devices through the repository feedback forms.
+2. **Provider compatibility.** Build a verified matrix covering model lists, streaming, extended reasoning, interrupted connections, cancellation, and decision repair.
+3. **Sharing and portability.** Extend the existing Markdown export with audience-oriented sharing, full archive backup/import, and portable rule versions.
+4. **Hosted deployment.** A public hosted service requires an account model, credential ownership, quotas, cost controls, and request isolation appropriate to that deployment.
+
+## Verification
+
+Automated coverage includes scheduling, adjudication, appeals, cancellation, interrupted streams, credentials, endpoint normalization, malformed archives, snapshot recovery, completed results, unavailable browser storage, and actionable errors.
+
+Browser checks use isolated data and mock endpoints for demos, pause/resume, transcript following, model discovery, endpoint normalization, unsaved settings, local connections, archive deletion undo, and search. Recovery conversion is automated. The embedded browser's navigation guard limited direct refresh testing during an active match, so full refresh behavior should also be exercised in a regular browser.

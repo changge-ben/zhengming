@@ -1,40 +1,40 @@
-name: 反馈使用问题
-description: 启动、模型接入、比赛或档案使用中遇到了问题。
-title: "[问题] "
+name: Report a problem
+description: Report a problem with startup, model connections, debates, or archives.
+title: "[Bug] "
 body:
   - type: markdown
     attributes:
       value: |
-        感谢帮助完善争鸣。用自己的话描述即可，截图和报错原文最有帮助。
-        GitHub Issue 会公开展示，提交前请遮盖密钥、私人对话和个人信息。
+        Describe the problem in your own words. Screenshots and the original error text are helpful.
+        Issues are public. Remove credentials, private conversations, and personal information before posting.
   - type: textarea
     id: problem
     attributes:
-      label: 遇到了什么问题
-      description: 描述实际发生的情况，以及你原本希望出现的结果。
-      placeholder: 点击开始比赛后，页面显示……我希望……
+      label: What happened?
+      description: Include the actual result and the result you expected.
+      placeholder: After starting a match, the page displayed...
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
-      label: 问题出现前做了什么
-      description: 尽量按顺序描述操作，偶发问题也可以直接说明。
-      placeholder: 打开程序 → 选择阵容 → 开始比赛 → ……
+      label: Steps leading to the problem
+      description: Describe the sequence where possible, including intermittent behavior.
+      placeholder: Open the app → choose a lineup → start a match → ...
   - type: input
     id: environment
     attributes:
-      label: 使用环境
-      description: 填写知道的信息即可，程序版本可在环境诊断报告中查看。
-      placeholder: Windows 11、Edge、便携版 1.1.0-beta.2
+      label: Environment
+      description: Include details you know. The diagnostic report includes the app version.
+      placeholder: Windows 11, Edge, portable version 1.1.0-beta.2
   - type: input
     id: model
     attributes:
-      label: 涉及的模型与接入方式
-      description: 接口问题可填写服务商、模型 ID 和协议，演示问题可填脚本演示。
-      placeholder: 服务商名称、模型 ID、OpenAI 兼容协议
+      label: Model and connection
+      description: For API issues, include the provider, model ID, and protocol. For demos, enter scripted demo.
+      placeholder: Provider name, model ID, OpenAI-compatible Chat Completions
   - type: textarea
     id: evidence
     attributes:
-      label: 报错、截图或诊断信息
-      description: 可粘贴报错原文或拖入截图，先检查并遮盖敏感内容。
+      label: Errors, screenshots, or diagnostics
+      description: Paste the original error or attach screenshots after removing sensitive content.

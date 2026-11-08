@@ -1,196 +1,112 @@
-# 争鸣 · AI 辩论场
+# Zhengming · AI Debate Arena
 
-一个可以自己出题、挑选模型、组建正反方，观看 AI 实时辩论的本地网站。
+Choose a question, assemble competing AI teams, and watch the arguments unfold live. Models prepare together, challenge each other across rounds, and can appeal a judge's ruling.
 
-右上角可切换中文与 English，选择会在当前浏览器保存。首次访问跟随浏览器语言。新比赛按开赛时选定的语言生成发言、备战和裁决，已有辩题与历史发言保留原文。英文预算同样按字符计数，包含空格。
+[English repository on GitHub](https://github.com/changge-ben/zhengming) · [中文仓库与使用说明 · Gitee](https://gitee.com/shi-blca/zhengming)
 
-**English quick start** — Download the Windows ZIP below, extract it, and double-click `启动争鸣.cmd`. Use **EN** in the top bar to switch to English, then choose **Watch a demo** without an API key. Connect your own provider under **Model connections** for live debates. Language selection is saved in your browser and applies to newly started matches. Existing topics and speeches keep their original text.
+## Start with a demo
 
-首次打开可点击「先看一场演示」体验。真实模型开赛前会显示常规发言次数，API 费用由所选服务商计费。
+[Download the Windows portable beta](https://github.com/changge-ben/zhengming/releases/download/v1.1.0-beta.2/zhengming-1.1.0-beta.2-windows-x64.zip)
 
-进行中的比赛会在当前标签页保存快照。刷新后可找回已生成内容并归档为中止比赛；正常结束的比赛继续进入本地档案。档案删除后可撤销最近一次删除。具体使用边界与后续推广重点见[使用体验回顾](docs/usability-review.md)。
+1. Extract the complete ZIP into a folder.
+2. Double-click **启动争鸣.cmd** to start the app. The portable package includes its own runtime.
+3. Select **EN** in the top bar, then **Watch a demo**. Scripted demos work without an API key.
+4. Open **Model connections** to configure your own provider for live debates.
 
-## 从 GitHub 下载
+The companion scripts **停止争鸣.cmd** and **环境诊断.cmd** stop the local service and generate a diagnostic report. See the [Windows guide](docs/windows-release.md) for updates, data locations, and troubleshooting.
 
-[下载 Windows 便携测试版 / Download for Windows](https://github.com/changge-ben/zhengming/releases/download/v1.1.0-beta.2/zhengming-1.1.0-beta.2-windows-x64.zip)
+The app runs locally on your computer. Live model usage is billed by your selected provider.
 
-普通 Windows 用户可下载上面的便携 ZIP，完整解压后双击 **启动争鸣.cmd**。便携版自带运行环境，首次使用可直接体验脚本演示。另附 **停止争鸣.cmd** 与 **环境诊断.cmd**。模型配置保存在本机固定数据目录，更新时解压到新文件夹并使用原浏览器与地址。详细步骤见[便携版使用与发布说明](docs/windows-release.md)。
+## What you can do
 
-### 源码方式
+- **Assemble a lineup.** Choose 1v1, 2v2, or 3v3. Every speaker and the judge can use a separately selected provider and model ID.
+- **Let teams prepare.** Both teams plan in separate rooms. Each member gets two preparation turns. Spectators can view both teams' preparation speeches, and each model receives its own team's discussion.
+- **Choose an open or structured debate.** Structured matches progress through independent openings, paired cross-examination, rebuttals, and closing statements. The starting side alternates across rounds.
+- **Set the terms.** Define the motion, scope, comparison criterion, and burdens of proof. Supply shared source cards, everyday examples, or clearly labeled hypotheticals.
+- **Follow the whole match.** Speeches and shared materials have clickable `[M1]` and `[E1]` references. The clash index tracks assigned questions, responses, and citations.
+- **Combine expression styles.** Conversational, sharp, humorous, literary, rigorous, and concise delivery can be selected together. Models decide their own reasoning, tactics, and roles.
+- **Join the questioning.** Submit audience questions, pause after a turn, resume, or end the match.
+- **Invite a judge.** Use final-only adjudication or coached rounds. Each side receives an equal appeal opportunity, including after the winner changes. Two successful appeals send both teams into a full overtime round.
+- **Keep the record.** Browse the latest 20 complete archives, search, replay, export Markdown, and undo the latest archive deletion. Cumulative model results are stored separately. Scripted demos are excluded from standings by default.
 
-[下载源码 ZIP](https://github.com/changge-ben/zhengming/archive/refs/heads/main.zip)
+## English and Chinese
 
-在仓库页面点击 **Code → Download ZIP**，下载后先完整解压。Windows 用户安装 **Node.js 22.12 或更新版本**后，双击解压文件夹内的 **启动争鸣.cmd**。首次启动需要联网安装依赖，服务就绪后自动打开浏览器。
+The top-bar switch changes the interface language and saves the preference in your browser. First visits follow the browser's language. New matches use the language selected at launch, including preparation, rulings, and appeals. Existing topics, speeches, and actual model IDs are displayed in their original form.
 
-安装了 Git 的用户，可以执行一条命令下载完整源码和版本记录：
+The default visible-text budget is **400 characters per speech**, with **180 seconds** for connection, reasoning, and output. English spaces count toward the character budget. Available presets include 200, 400, 600, or 1,000 characters and waits of 60, 120, 180, 300, or 600 seconds. Judge rulings and reviews allow 800 characters.
+
+Unresolved matches enter overtime. After three complete overtime rounds, an enabled judge uses the published whole-match scoring rubric. Matches without a judge continue until concession, explicit forfeiture, or manual stop.
+
+## Run from source
+
+Install Node.js **22.12 or later**, then clone the English repository.
 
 ```bash
 git clone https://github.com/changge-ben/zhengming.git
-```
-
-克隆完成后进入 `zhengming` 文件夹，双击 `启动争鸣.cmd`，或按下方步骤运行。以后在该文件夹执行 `git pull` 可获取作者的新提交。
-
-脚本演示无需 API Key。真实辩论需要使用者在「模型接入」中填写自己的服务商、模型 ID 和 API Key。战绩和辩论档案保存在各自浏览器中。
-
-## 运行
-
-需要 Node.js 22.12+（本项目开发环境为 Node.js 24）。在项目目录执行：
-
-```powershell
+cd zhengming
 npm ci
 npm run dev
 ```
 
-浏览器打开 [http://127.0.0.1:5173](http://127.0.0.1:5173/)。开发服务器代理 `/api` 到本机 8787 端口。
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173/). The development frontend forwards `/api` to port 8787. Windows users can also double-click **启动争鸣.cmd** inside the source folder.
 
-Windows 推荐直接双击项目中的 **`启动争鸣.cmd`**：首次运行自动安装依赖，等待本地服务就绪后自动打开浏览器；服务已启动时会直接打开，不再重复启动。服务在后台运行，关闭启动窗口不影响网站。电脑重启后再双击一次即可。密钥如已勾选「记住 API Key」，会自动恢复。
+For the Chinese distribution, use the [Gitee repository](https://gitee.com/shi-blca/zhengming) and its domestic download instructions.
 
-新版界面采用石墨黑、香槟金与冷青色，首页为原生 SVG 轨道动画，支持手动暂停；系统开启「减少动态效果」时自动关闭动画。对战、模型配置、战绩与档案沿用同一套视觉样式。
+### Production build
 
-生产构建：
-
-```powershell
+```bash
 npm run build
 npm start
 ```
 
-构建后访问 [http://127.0.0.1:8787](http://127.0.0.1:8787/)。本项目默认仅监听本机，适合个人使用；没有实现面向公网的账户、权限与计费系统。
+Open [http://127.0.0.1:8787](http://127.0.0.1:8787/). The service listens on the local loopback interface.
 
-Windows 维护者可运行 `npm run package:windows` 构建便携包，再运行 `npm run test:portable` 检查解压、启动、停止、配置恢复与异常提示。GitHub Actions 会在每次提交及拉取请求时检查代码并构建测试包。
+## Connect your models
 
-## 反馈问题与建议
+1. Open **Model connections** and choose or add a provider.
+2. Enter the provider's **Base URL**, **API key**, and **model IDs**. Put one model ID on each line.
+3. Use **Save & load models** to discover IDs supported by the endpoint. Save again after adding discovered models.
+4. In **Lineup**, choose **Live models** and assign models to each speaker.
+5. If judging is enabled, assign a judge model your provider account can access.
 
-在 [GitHub 反馈入口](https://github.com/changge-ben/zhengming/issues/new/choose)选择「反馈使用问题」或「提出改进建议」，填写遇到的情况即可。启动问题可先双击便携包中的「环境诊断.cmd」，再提供程序版本、系统、操作步骤和报错截图。接口问题可补充服务商名称、模型 ID 和协议。
-
-反馈会公开展示，提交前请遮盖密钥、私人对话和个人信息。首次体验建议先完成脚本演示，再尝试一场真实模型的1v1比赛。
-
-## 已实现
-
-- 开场大厅与主战场独立页面：大厅仅保留辩题、六张可点击设置卡片和入场按钮，详细选项在对应弹窗中调整。页面内切换不会中断正在进行的比赛。
-- 可选 30 / 60 / 120 / 180 秒赛前备战，两队并行商议，各成员两次讨论机会；模型只读取本队准备，观众可查看双方更衣室。备战单独计时。
-- 不预设思维派别或固定战术职位，模型自主讨论和调整分工。选手标题显示为「正方一辩（模型 ID）」。
-- 独立模型战绩页：累计胜、负、平、未决和自我对战；演示默认不计入。战绩独立于最近 20 场档案保存，手动结束和连接错误不计战绩。
-- 自定义辩题、随机灵感题目；1v1、2v2、3v3 对战。
-- 每位辩手独立选择服务商和模型，支持同一模型自我辩论。
-- 经典攻防、自由交锋、苏格拉底式追问三种交锋风格；生活化、幽默犀利、严谨克制三种语言风格。
-- 默认按字数：每次正文 400 字，单次连接、思考与输出最多等待 180 秒；可调整为 200 / 400 / 600 / 1000 字和 60 / 120 / 180 / 300 / 600 秒。常规交锋可设置 1 / 2 / 3 / 5 / 6 / 10 轮。仍保留传统计时模式。
-- 双方交替发言，按字数模式每名选手都获得完整等待预算，不再按整轮或全场剩余时间缩短到几秒。正文超过上限会收束，尽量在句末结束。
-- 实时 SSE 流式输出、当前发言提示、倒计时、自动跟随开关。
-- 普通发言或备战在收到正文前短暂断流时，自动重连最多 1 次，重连计入原有时间预算；已有正文不重发。界面显示重连提示；配置错误、持续故障或裁判/申诉中断仍明确停止，不伪造结果。
-- 暂停 / 继续、立即停止上游请求、观众提问。
-- 队长可主动认输；正式辩手明确弃守本方立场将判负。本场不设平局，未决先加时，完整三轮仍未决则按整场表现评分决胜；无裁判时持续至认输、弃守或手动停止。
-- **可选裁判席**：默认只在常规阶段结束后裁决，未分胜负则加时一轮再评；另有每轮点评的裁判指导赛。每次裁决的双方各有一次申诉机会；裁判改判后，新败方同样可以申诉。双方都申诉成功则完整加时一轮，再重新裁决。
-- **分阶段正式赛**：在「赛题与规程」选择独立立论、双向质询、争点攻防、总结陈词的完整赛程。支持1v1至3v3，每位成员均有指定提问与回答机会，逐轮轮换首发方。
-- **赛题约定与公共资料**：填写定义、范围、比较标准及举证责任，添加带编号的来源材料、生活实例或假设情境。双方备战与裁判获得相同公共资料，资料随比赛存档和导出。
-- **交锋索引**：发言与资料可通过 `[M编号]`、`[E编号]` 引用并点击跳转，跟踪指定质询、完整回应与无效编号。详细调研依据与赛程规则见[辩论设计说明](docs/debate-design.md)。
-- 浏览器保存最近 20 场档案，支持搜索、重看、删除和 Markdown 导出。
-- 桌面、平板与手机响应式布局，键盘操作和系统减少动效偏好。
-- 无需密钥的脚本演示，界面持续标注演示来源。
-
-## 接入真实 API
-
-1. 点击右上角「连接模型」或侧栏「模型接入」。
-2. 选择一个服务商入口，填写 **Base URL、API Key 和模型 ID**。所有入口均可修改名称和地址。
-3. 点击「保存并读取模型」，从接口获取可用模型 ID；也可直接手动填写。**添加发现的模型后，需要再次保存。**
-4. 返回开场大厅，点击「对战阵容」卡片，切换到「真实模型」，分别选择每位正反方辩手。
-5. 如果开启裁判，另选其实际模型。**需为裁判填写你实际拥有权限的模型 ID。**
-6. 开始辩论。
-
-### 协议
-
-| 类型 | Base URL 示例 | 服务端追加路径 |
+| Protocol | Example Base URL | Appended endpoint |
 | --- | --- | --- |
-| OpenAI 兼容 Chat Completions | `https://api.example.com/v1` | `/chat/completions` |
+| OpenAI-compatible Chat Completions | `https://api.example.com/v1` | `/chat/completions` |
 | Anthropic Messages | `https://api.anthropic.com/v1` | `/messages` |
-| Ollama / LM Studio 等本地兼容服务 | `http://localhost:11434/v1` | `/chat/completions` |
+| Ollama or another local compatible service | `http://localhost:11434/v1` | `/chat/completions` |
 
-Base URL 不要包含最终的 `/chat/completions` 或 `/messages`。模型需支持流式文本输出。不支持某一协议的专用接口，需要添加适配器，不能仅通过修改 URL 转换协议。
+Providers must support streaming text output. Advanced settings control the length parameter, including `max_tokens`, `max_completion_tokens`, or omitting that parameter for compatible services. Custom providers can be added as needed. Model IDs are supplied by your provider.
 
-- OpenAI 入口默认使用 `max_completion_tokens`，多数兼容服务使用 `max_tokens`；可在界面调整或选择不传长度参数。
-- 模型列表检测访问 `/models`。有些中转或服务商不提供此接口：检测失败不必然说明对话不可用，可手动填写模型 ID 后实际测试。
-- 服务端对正反方使用相同的 8192 tokens 接口安全上限，正文另有明确字数预算。部分接口将隐藏思考计入 tokens，字符与 tokens 不是同一个概念。提示词会同时说明正文总量与等待上限，不展示隐藏思考。
-- 上游错误、空响应、SSE 中断、超时会清楚显示，不会自动改用演示模式或默默判负。
+### Saving credentials
 
-### 密钥
+API keys are session-only by default. On Windows, **Remember API key** encrypts the saved copy with Windows DPAPI for the current account and machine. Remembered keys are restored when the service starts. Unchecking the option and saving removes the saved copy while retaining the active session key. **Clear current key** clears both copies.
 
-页面输入的密钥默认只在本次服务中使用。Windows 下可在模型接入中勾选 **“记住 API Key（本机加密，重启自动恢复）”** 并保存，之后无需反复输入。使用 Windows DPAPI 的当前用户加密，密钥不会以明文写入文件，也不回传前端或写入浏览器存储。取消勾选并保存会移除已存密钥、保留本次使用；“清除当前密钥”同时清除内存与已存密钥。复制项目到另一台机器或换 Windows 账户后须重新填写。非 Windows 系统暂不支持此加密选项，仍可使用环境变量。
+Provider metadata and remembered encrypted keys are stored in `.local/providers.json` for source installations, or `%LOCALAPPDATA%\Zhengming` for the portable package. Provider APIs expose connection status to the browser. Keys stay on the local server.
 
-长期使用可复制 `.env.example` 为 `.env`，填写对应的 `OPENAI_API_KEY`、`DEEPSEEK_API_KEY`、`QWEN_API_KEY`、`ANTHROPIC_API_KEY` 或 `CUSTOM_API_KEY`。`.env` 和 `.local` 已加入 `.gitignore`。
+Match archives and model results are stored in the current browser. In-progress snapshots use the current tab's session storage. Refresh recovery retains generated content as an interrupted archive. Export important matches before clearing browser data or changing devices.
 
-`.local/providers.json` 保存服务商地址、协议、名称、模型列表，以及主动勾选记住后的 DPAPI 密文；不保存明文 API Key。比赛内容保存在当前浏览器，清理浏览器数据会丢失档案；重要对局建议导出。
+## Fair adjudication
 
-## 胜负、裁判与对峙规则
+The judge evaluates both teams' core arguments, rebuttals, and the full match record. The published 100-point rubric allocates 30 points to answers to the judge, 20 to rigor, 20 to coherence, 15 to rebuttal, 10 to evidence, and 5 to expression. Equal totals compare the published dimensions in order. Both teams receive equal response points until each has had a fair opportunity to answer.
 
-- 选手、备战与裁判提示词均明确本次等待秒数、接口 tokens 安全预算、正文的硬字数上限，以及完整收尾、为控制标记留余量的要求。连接、思考与输出均计入单次等待；模型无法读取实时倒计时，提示不能保证永不截断。
-- 普通选手已输出正文后，如果上游流不完整或传输中断，保留残文、标明中断并继续下一位；残缺发言不能投降。完全无正文的连接失败仍明确报错，裁判与申诉的不完整输出不能产生裁决。
-- 一轮顺序：正方一辩 → 反方一辩 → 正方二辩 → 反方二辩……。
-- 正式交锋禁止撤回本方核心主张、改站对方或以“我们都对”放弃比较命题。任何辩手在完整发言末尾独立声明 `[[FORFEIT]]`，立即按立场弃守判全队负；缺少机器信号的疑似弃守由裁判结合整场上下文评判，不按词语命中自动判负。局部事实纠错、引用对方、备战、申诉接受裁决不算弃守；中断或截断信号不判负。
-- 一辩是队长；其他辩手不能代表全队认输。只接受完整发言最后独立一行的 `[[CONCEDE]]` 控制信号，正文中引用该词或局部让步均不判负。
-- 超时或达到输出上限的发言即使包含认输标记，也不产生投降结果。
-- **无裁判**：持续交锋，直到队长主动认输或用户手动结束；常规阶段到达轮数或时间后只切换到加时，不自动结算。
-- **极限攻防**：常规阶段内裁判不插话，默认 3 轮后首次裁决。裁判按双方整场主要论证链评判，不能因单个例子被击破直接判整队失败；不要求无检索工具的模型凭空提供调查。强制评分前可判胜或要求继续交锋。旧接口的 draw 也视为未决加时，不作为平局结束。
-- **裁判指导赛**：常规阶段逐轮点评；阶段结束后作胜负裁决，未决先加时，完整三轮后评分决胜。
-- **判词篇幅**：裁判判词与申诉复核每次独立上限800字，不受选手发言字数设置影响；有充分材料时尽量用600至800字说明整场交锋、判胜依据及胜方漏洞。
-- **加时**：每次完整交锋一轮后再次裁决。完整加时三轮后仍未决，切换整场评分决胜：正面回应裁判问题30、严密度20、自洽性20、攻防回应15、实例论据10、表达表现5，满分100；按总分、再依次裁判问题回应/自洽/攻防/严密/实例/表达决胜，完全同分须明确决定性交锋，不设平局。裁判须给双方公平的答题机会，选手必须尊重裁判、正面作答，可以据理质疑前提；回避、换题或人身攻击会扣分。若此前没有裁判问题或没有公平的答题机会，回应项双方同给30分，以其余70分比较。评分和总分展示在裁判卡片、保存在档案并导出为 Markdown；旧档案保留原评分。无有效完整评分或遇到网络故障，不捏造胜者，继续交锋后重试评分，可手动停止。
-- **申诉**：每次初判后的裁决程序中，双方各有一次申诉机会。首位败方申诉后若裁判改判，新败方可针对最新判词选择接受或申诉；若两方都申诉成功、胜方被连续翻转两次，则本次裁决不结算，完整加时一轮后重新裁决，并重新给予双方同等申诉机会。申诉未成功或新败方接受时确认最新裁决；复核无法确认胜负、回应中断或格式无效时继续加时。评分阶段同样适用此规则，加时轮数累计不重置。
-- **裁决格式**：判词后附 `<decision>{"verdict":"pro"}</decision>` / con / continue；申诉使用 appealed 布尔值。兼容旧标记、同行标记及完整 JSON。缺少标记时可由原模型确认修复一次；仍无有效结果或裁判中断则保留记录、继续加时，不把格式问题伪装成胜负。
+Read the [debate design notes](docs/debate-design.md) for the schedule, reference system, and evaluation scope.
 
-## 让辩论像真人说话
+## Development checks
 
-表达风格可多选叠加，作用于选手、备战、申诉和裁判：
+```bash
+npm run check
+npm test
+```
 
-- **生活化**：像朋友当面接话，使用简历、外卖、导航等具体例子，适度幽默。
-- **言辞犀利**：精准追问和反击，针对论点而非人身。
-- **幽默风趣**：机智类比和接梗，不用段子替代论据。
-- **有文采**：准确的典故、诗句和意象，要与争点相关，不捏造出处。
-- **严谨清楚**：交代前提、因果与边界，可以同时幽默有文采。
-- **简洁有力**：减少铺垫和重复，为实例、回应与结论留足篇幅。
-
-旧版单选设置自动映射到组合；模型阵容与供应商配置保留。
-
-每次正式发言优先给一个相关的具体生活场景或可靠事例；假设明确标注，不把个案当普遍统计。每次读取整场正式记录，不再只保留开场与最近28条，要求跨轮追踪未回应争点、双方各辩手与前后变化，先回应再推进，不机械重复。完整记录仍受实际服务商的上下文容量与8MB本地请求保护限制；没有接入外部检索工具。
-
-共同约束：不念论文、不堆小标题和抽象名词、不每次复述身份，专业词最多引入一个并立即解释。比喻不能当证据，幽默不等于人身攻击。极限攻防鼓励模型依据对方真实回应自主调整进攻、追问与反驳，不强制每次发言的结构或战术。
-
-## 演示模式与测试边界
-
-演示模式是**预设脚本**，仅展示产品流程。任意辩题会被嵌入模板，不代表模型真的理解题目，也不能用于比较模型水平。
-
-- 无裁判演示：反方队长在第 3 轮认输。
-- 有裁判演示：极限攻防持续至全场超时，比赛中没有裁判发言；指导赛也可因达到轮次上限结束。之后裁定正方胜，反方提出申诉，裁判复核后维持原判。
-
-运行测试：
+On Windows, build and test the portable package with the following commands.
 
 ```powershell
-npm test
-npm run build
+npm run package:windows
+npm run test:portable
 ```
 
-自动化测试使用本地 HTTP 模拟接口，不需要真实密钥，覆盖轮换、SSE 分片、两种适配器、超时、取消、认输权限、两种裁判介入时机、语言风格、裁判信号、改判与密钥脱敏。HTTP 配置测试运行于隔离的临时目录，不修改你的设置。
+The latest application checks include 105 automated tests and eight portable-package checks. The [usability review](docs/usability-review.md) records completed improvements and current behavior.
 
-**仍需要你接入 API 后实测**：账号权限、具体模型 ID、供应商兼容性、真实首字延迟与输出速度、辩论质量、裁判公允性和实际用量。
+## Feedback
 
-## 项目结构
-
-```text
-src/Workspace.tsx    页面路由、档案与战绩持久化
-src/Home.tsx         简洁开场大厅
-src/SetupDialog.tsx  按模块打开的设置弹窗
-src/Battle.tsx       独立主战场、双方备战室与观众席
-src/Records.tsx      模型胜负战绩
-src/Settings.tsx     模型接入界面
-src/useDebate.ts     轮换、计时、暂停、裁判与申诉编排
-server/index.ts     本地 HTTP API、参数校验与 SSE 转发
-server/providers.ts 服务商配置与密钥生命周期管理
-server/keyStorage.ts Windows DPAPI 本机密钥加密
-server/debate.ts    发言生成、协议适配、取消和时间预算
-server/judge.ts     裁判 / 申诉提示词与演示脚本
-shared/             双端类型和 SSE 解析器
-tests/              自动化回归测试
-```
-
-技术栈：React、TypeScript、Vite、Express。没有远端数据库要求，也不需要外部字体资源。
-
-### 多个自定义模型入口
-
-模型接入左侧的「新增自定义入口」可以反复添加独立服务商，每个入口分别设置 Base URL、协议、Key 与模型列表。同一入口也可填写多个模型 ID。新增入口的元数据会保留；Key 可选择仅本次使用，或在 Windows 上勾选本机加密记住。
+Use the [issue and feature request forms](https://github.com/changge-ben/zhengming/issues/new/choose). Include the app version, operating system, steps to reproduce, and relevant errors. For API issues, include the provider name, model ID, and protocol. Remove credentials and private conversation content before posting public feedback.
