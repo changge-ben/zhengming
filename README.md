@@ -2,7 +2,7 @@
 
 Choose a question, assemble competing AI teams, and watch the arguments unfold live. Models prepare together, challenge each other across rounds, and can appeal a judge's ruling.
 
-[English repository on GitHub](https://github.com/changge-ben/zhengming) · [中文仓库与使用说明 · Gitee](https://gitee.com/shi-blca/zhengming)
+[English repository on GitHub](https://github.com/changge-ben/zhengming) · [Chinese repository and documentation · Gitee](https://gitee.com/shi-blca/zhengming)
 
 ## Start with a demo
 
